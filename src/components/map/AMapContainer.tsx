@@ -8,7 +8,7 @@ import { DroneVideoWindow } from './DroneVideoWindow';
 
 // 试点路段 G50 中点坐标（重庆附近，Demo 用）
 const CENTER: [number, number] = [106.551, 29.562];
-const NEST_COORDS: [number, number] = [106.545, 29.550]; // 机巢位置
+const HANGAR_COORDS: [number, number] = [106.545, 29.550]; // 机舱位置
 
 export function AMapContainer() {
   const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 12 });
@@ -18,20 +18,20 @@ export function AMapContainer() {
   const prevDispatchingRef = useRef<Set<string>>(new Set());
   const [keyWarningDismissed, setKeyWarningDismissed] = useState(false);
 
-  // 初始化固定 Marker（机巢）
+  // 初始化固定 Marker（机舱）
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    // 机巢 Marker
-    const nestMarker = new AMap.Marker({
-      position: NEST_COORDS,
+    // 机舱 Marker
+    const hangarMarker = new AMap.Marker({
+      position: HANGAR_COORDS,
       content: '<div style="font-size:20px;text-align:center;">🏠</div>',
       offset: new AMap.Pixel(-12, -12),
     });
-    nestMarker.setMap(amap);
-    markersRef.current.set('nest', nestMarker);
+    hangarMarker.setMap(amap);
+    markersRef.current.set('hangar', hangarMarker);
   }, [amap]);
 
   // 同步事件 Markers
@@ -59,7 +59,11 @@ export function AMapContainer() {
     });
   }, [amap, events]);
 
-  // 同步无人机 Markers
+  // 判断坐标是否与机舱相同
+  const isSameCoords = (a: [number, number], b: [number, number]) =>
+    a[0] === b[0] && a[1] === b[1];
+
+  // 同步无人机 Markers（与机舱重叠时只显示机舱）
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
@@ -69,6 +73,8 @@ export function AMapContainer() {
 
     drones.forEach((drone) => {
       if (drone.status === 'offline') return;
+      // 无人机与机舱在同一位置时，隐藏无人机，只显示机舱
+      if (isSameCoords(drone.coordinates, HANGAR_COORDS)) return;
       const color = drone.status === 'flying' ? '#3FB950' : '#D29922';
       const marker = new AMap.Marker({
         position: drone.coordinates,
