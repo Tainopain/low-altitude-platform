@@ -4,28 +4,46 @@ import { ZoomInOutlined, ZoomOutOutlined, AimOutlined, FullscreenOutlined } from
 import { useAMap } from '../../hooks/useAMap';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
+import { useUIStore } from '../../stores/uiStore';
 import { MapLegend } from './MapLegend';
 import { DroneVideoWindow } from './DroneVideoWindow';
 
 // 试点路段 G50 中点坐标（重庆附近，Demo 用）
 const CENTER: [number, number] = [106.530, 29.540];
 
+// 主题色配置
+const THEME = {
+  dark: { bg: '#161B22', text: '#E6EDF3', border: '#30363D', link: '#58A6FF', muted: '#8B949E', shadow: 'rgba(0,0,0,0.4)' },
+  light: { bg: '#FFFFFF', text: '#1F2328', border: '#D0D7DE', link: '#0969DA', muted: '#656D76', shadow: 'rgba(0,0,0,0.12)' },
+} as const;
+
 export function AMapContainer() {
   const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 11 });
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
+  const theme = useUIStore((s) => s.theme);
+  const t = THEME[theme];
   const markersRef = useRef<Map<string, any>>(new Map());
   const infoWindowRef = useRef<any>(null);
 
-  // 显示信息窗
+  // 主题化包裹 InfoWindow 内容（带 CSS 三角箭头）
+  const wrapContent = (inner: string) =>
+    `<div style="background:${t.bg};color:${t.text};border-radius:6px;padding:8px 12px;font-size:12px;line-height:1.8;box-shadow:0 2px 12px ${t.shadow};border:1px solid ${t.border};position:relative;min-width:150px;">
+      ${inner}
+      <div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:7px solid ${t.border};"></div>
+      <div style="position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid ${t.bg};"></div>
+    </div>`;
+
+  // 显示信息窗（自定义样式，跟随主题）
   const showInfo = (AMap: any, pos: [number, number], content: string) => {
     if (infoWindowRef.current) {
       infoWindowRef.current.close();
     }
     const iw = new AMap.InfoWindow({
-      content,
+      content: wrapContent(content),
       position: pos,
-      offset: new AMap.Pixel(0, -20),
+      offset: new AMap.Pixel(0, -10),
+      isCustom: true,
     });
     iw.open(amap);
     infoWindowRef.current = iw;
@@ -105,17 +123,15 @@ export function AMapContainer() {
       const owner = drones.filter((d) => d.homePosition[0] === drone.homePosition[0] && d.homePosition[1] === drone.homePosition[1]);
       marker.on('click', () => {
         const droneList = owner.map((d) => `${d.name} (${d.status === 'flying' ? '在空' : d.status === 'standby' ? '待命' : '充电中'})`).join('<br/>');
-        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:140px">
-          <b>🏠 机舱</b><br/>
+        const content = `<b>🏠 机舱</b><br/>
           ${droneList}<br/>
-          位置: ${drone.homePosition[1].toFixed(4)}, ${drone.homePosition[0].toFixed(4)}
-        </div>`;
+          <span style="color:${t.muted}">位置: ${drone.homePosition[1].toFixed(4)}, ${drone.homePosition[0].toFixed(4)}</span>`;
         showInfo(AMap, drone.homePosition, content);
       });
       marker.setMap(amap);
       markersRef.current.set(`hangar_${drone.id}`, marker);
     });
-  }, [amap, drones]);
+  }, [amap, drones, theme]);
 
   // 同步事件 Markers
   useEffect(() => {
@@ -137,23 +153,20 @@ export function AMapContainer() {
       });
       const timeStr = new Date(evt.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       marker.on('click', () => {
-        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:170px">
-          <b style="color:${color}">${levelLabel} · ${evt.type}</b><br/>
+        const content = `<b style="color:${color}">${levelLabel} · ${evt.type}</b><br/>
           路段: ${evt.roadName} ${evt.stakeNumber}<br/>
-          置信度: ${evt.confidence}%<br/>
-          来源: ${evt.source === 'camera' ? '📷' : '✈️'} ${evt.sourceDetail}<br/>
-          时间: ${timeStr}<br/>
-          <a href="/event/${evt.id}" style="color:#58A6FF;text-decoration:none;font-weight:500;"
+          置信度: ${evt.confidence}% &nbsp; 来源: ${evt.source === 'camera' ? '📷' : '✈️'} ${evt.sourceDetail}<br/>
+          <span style="color:${t.muted}">时间: ${timeStr}</span><br/>
+          <a href="/event/${evt.id}" style="color:${t.link};text-decoration:none;font-weight:500;"
              onclick="event.preventDefault();window.history.pushState(null,'','/event/${evt.id}');window.dispatchEvent(new PopStateEvent('popstate'));">
             查看详情 →
-          </a>
-        </div>`;
+          </a>`;
         showInfo(AMap, evt.coordinates, content);
       });
       marker.setMap(amap);
       markersRef.current.set(`evt_${evt.id}`, marker);
     });
-  }, [amap, events]);
+  }, [amap, events, theme]);
 
   const isSameCoords = (a: [number, number], b: [number, number]) =>
     a[0] === b[0] && a[1] === b[1];
@@ -189,19 +202,16 @@ export function AMapContainer() {
       marker.on('click', () => {
         const statusLabel = drone.status === 'flying' ? '在空' : drone.status === 'standby' ? '待命' : drone.status === 'charging' ? '充电中' : '维护';
         const batteryColor = drone.battery > 50 ? '#3FB950' : drone.battery > 20 ? '#D29922' : '#F85149';
-        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:160px">
-          <b>${drone.name}</b> <span style="color:${drone.status === 'flying' ? '#3FB950' : '#D29922'}">${statusLabel}</span><br/>
-          电量: <span style="color:${batteryColor}">${drone.battery}%</span><br/>
+        const content = `<b>${drone.name}</b> <span style="color:${drone.status === 'flying' ? '#3FB950' : '#D29922'}">${statusLabel}</span><br/>
+          电量: <span style="color:${batteryColor}">${drone.battery}%</span> &nbsp; 速度: ${drone.speed > 0 ? drone.speed + ' km/h' : '停泊'}<br/>
           任务: ${drone.task}<br/>
-          速度: ${drone.speed > 0 ? drone.speed + ' km/h' : '停泊'}<br/>
-          位置: ${drone.coordinates[1].toFixed(4)}, ${drone.coordinates[0].toFixed(4)}
-        </div>`;
+          <span style="color:${t.muted}">位置: ${drone.coordinates[1].toFixed(4)}, ${drone.coordinates[0].toFixed(4)}</span>`;
         showInfo(AMap, drone.coordinates, content);
       });
       marker.setMap(amap);
       markersRef.current.set(`drone_${drone.id}`, marker);
     });
-  }, [amap, drones, events]);
+  }, [amap, drones, events, theme]);
 
   // 计算方位角（0-360，正北为0）
   const bearing = (from: [number, number], to: [number, number]) => {
