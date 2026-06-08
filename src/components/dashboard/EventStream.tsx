@@ -22,6 +22,7 @@ function EventRow({ event }: { event: HighwayEvent }) {
   const updateEvent = useEventStore((s) => s.updateEvent);
   const drones = useDroneStore((s) => s.drones);
   const setTask = useDroneStore((s) => s.setTask);
+  const setStatus = useDroneStore((s) => s.setStatus);
   const showVideoWindow = useUIStore((s) => s.showVideoWindow);
   const events = useEventStore((s) => s.events);
   const cfg = EVENT_LEVEL_CONFIG[event.level];
@@ -39,12 +40,14 @@ function EventRow({ event }: { event: HighwayEvent }) {
     if (!standbyDrone) return;
     const droneId = standbyDrone.id;
     updateEvent(event.id, { status: 'dispatching', droneId });
+    setStatus(droneId, 'flying');
     setTask(droneId, `抵近中: ${event.roadName} ${event.stakeNumber}`, 80);
     setTimeout(() => {
       updateEvent(event.id, { status: 'arrived' });
       setTask(droneId, '抵近确认中', 0);
       setTimeout(() => {
         updateEvent(event.id, { status: 'resolved' });
+        setStatus(droneId, 'standby');
         setTask(droneId, '待命', 0);
       }, 10000);
     }, 8000);
