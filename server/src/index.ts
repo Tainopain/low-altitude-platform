@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { initWebSocket } from './ws.js';
+import { startAIDetector } from './ai/detector.js';
 import authRoutes from './routes/auth.js';
 import eventRoutes from './routes/events.js';
 import droneRoutes from './routes/drones.js';
@@ -32,4 +33,8 @@ initWebSocket(server);
 server.listen(PORT, () => {
   console.log(`低空平台 API Server running on http://localhost:${PORT}`);
   console.log(`WebSocket on ws://localhost:${PORT}/ws`);
+
+  // 启动 AI 检测模拟器（每 20-40 秒生成一条事件）
+  const aiInterval = process.env.AI_INTERVAL ? parseInt(process.env.AI_INTERVAL) : 30000;
+  startAIDetector(aiInterval);
 });

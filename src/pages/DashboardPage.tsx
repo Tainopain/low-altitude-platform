@@ -8,6 +8,7 @@ import { EventStream } from '../components/dashboard/EventStream';
 import { AMapContainer } from '../components/map/AMapContainer';
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 /**
  * 大屏总览 — 首页
@@ -25,6 +26,9 @@ export function DashboardPage() {
 
   // 初始化数据 (API 优先，fallback mock)
   useEffect(() => { loadEvents(); loadDrones(); }, [loadEvents, loadDrones]);
+
+  // WebSocket 实时推送
+  useWebSocket();
 
   // 高危事件 Toast 通知（监听新事件）
   const prevHighCount = useRef(events.filter((e) => e.level === 'high').length);

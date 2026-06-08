@@ -10,6 +10,7 @@ interface EventStore {
   setFilterLevel: (level: EventLevel | 'all') => void;
   addEvent: (event: HighwayEvent) => void;
   updateEvent: (id: string, patch: Partial<HighwayEvent>) => Promise<void>;
+  applyServerUpdate: (id: string, patch: Partial<HighwayEvent>) => void;
   removeEvent: (id: string) => void;
   loadEvents: () => Promise<void>;
 }
@@ -24,6 +25,13 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
   addEvent: (event) => set((s) => ({ events: [event, ...s.events] })),
 
+  // 本地即时更新（来自 WebSocket 推送）
+  applyServerUpdate: (id, patch) =>
+    set((s) => ({
+      events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    })),
+
+  // 乐观更新 + API 同步
   updateEvent: async (id, patch) => {
     // Optimistic update
     set((s) => ({
