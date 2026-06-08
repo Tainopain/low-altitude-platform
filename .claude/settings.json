@@ -40,7 +40,9 @@
       "Bash(git commit -m 'docs: add comprehensive README + dev tooling + env examples *)",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); e=d[0]; print\\(f'Latest: {e[\\\\\"type\\\\\"]} {e[\\\\\"level\\\\\"]} @ {e[\\\\\"stakeNumber\\\\\"]} \\({e[\\\\\"confidence\\\\\"]}%\\)'\\)\")",
       "Bash(git commit -m 'feat: add ErrorBoundary, loading skeletons, panel transitions, smarter AI detector *)",
-      "Bash(git commit -m 'perf: code split all pages with React.lazy + add auth guard + logout *)"
+      "Bash(git commit -m 'perf: code split all pages with React.lazy + add auth guard + logout *)",
+      "Bash(timeout 8 node dist/index.js)",
+      "Bash(timeout 10 node dist/index.js)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"

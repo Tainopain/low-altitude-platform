@@ -73,9 +73,13 @@ export function startAIDetector(intervalMs = 30000) {
     const type = weightedRand(typeWeights);
 
     // Hotspot-weighted stake selection
-    const stakeWeights: Record<string, number> = {};
-    STAKES.forEach((s) => { stakeWeights[s.num] = s.hotspot; });
-    const stake = STAKES.find((s) => s.num === weightedRand(stakeWeights))!;
+    const totalHotspot = STAKES.reduce((s, st) => s + st.hotspot, 0);
+    let r = Math.random() * totalHotspot;
+    let stake = STAKES[0];
+    for (const s of STAKES) {
+      r -= s.hotspot;
+      if (r <= 0) { stake = s; break; }
+    }
 
     // Smart level assignment
     const confidence = smartConfidence(type, stake.hotspot);
