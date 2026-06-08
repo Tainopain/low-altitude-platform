@@ -15,6 +15,7 @@ export default function EventDetailPage() {
   const updateEvent = useEventStore((s) => s.updateEvent);
   const drones = useDroneStore((s) => s.drones);
   const setTask = useDroneStore((s) => s.setTask);
+  const setStatus = useDroneStore((s) => s.setStatus);
   const showVideoWindow = useUIStore((s) => s.showVideoWindow);
 
   const event = events.find((e) => e.id === id);
@@ -38,12 +39,14 @@ export default function EventDetailPage() {
     const standbyDrone = drones.find((d) => d.status === 'standby' && !busyDroneIds.has(d.id));
     if (!standbyDrone) return;
     updateEvent(event.id, { status: 'dispatching', droneId: standbyDrone.id });
+    setStatus(standbyDrone.id, 'flying');
     setTask(standbyDrone.id, `抵近中: ${event.roadName} ${event.stakeNumber}`, 80);
     setTimeout(() => {
       updateEvent(event.id, { status: 'arrived' });
       setTask(standbyDrone.id, '抵近确认中', 0);
       setTimeout(() => {
         updateEvent(event.id, { status: 'resolved' });
+        setStatus(standbyDrone.id, 'standby');
         setTask(standbyDrone.id, '待命', 0);
       }, 10000);
     }, 8000);
