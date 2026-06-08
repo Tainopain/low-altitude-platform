@@ -84,9 +84,20 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* 登录记录 */}
-      <Card title="📝 操作日志" size="small">
-        <Typography.Text type="secondary">MVP 版本暂不记录操作日志。后续版本将记录所有关键操作（确认/调度/关闭/配置变更）。</Typography.Text>
+      {/* 数据管理 */}
+      <Card title="🗄️ 数据管理" size="small">
+        <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 12 }}>
+          清除本地数据并返回登录页。服务器数据不受影响，重启后会自动恢复种子数据。
+        </Typography.Paragraph>
+        <Button
+          danger
+          onClick={() => {
+            localStorage.clear();
+            window.location.href = '/login';
+          }}
+        >
+          清除本地数据并登出
+        </Button>
       </Card>
     </div>
   );

@@ -53,7 +53,8 @@
       "Bash(git commit -m 'fix: login hooks order + 401 token sync + notification deprecation *)",
       "Bash(git commit -m 'chore: remove key warning alert banner from map *)",
       "Bash(git commit -m 'fix: hide closed/resolved events from map markers *)",
-      "Bash(git commit -m 'fix: notification static → App.useApp + WebSocket auth guard + message→title *)"
+      "Bash(git commit -m 'fix: notification static → App.useApp + WebSocket auth guard + message→title *)",
+      "Bash(git commit -m 'feat: add data reset button to Settings page *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"
