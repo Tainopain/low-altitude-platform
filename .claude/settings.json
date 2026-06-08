@@ -23,7 +23,9 @@
       "Bash(git commit -m 'docs: rewrite PRD with AI as central narrative \\(v2.0\\) *)",
       "Bash(git commit -m 'feat: redesign main layout to match PRD wireframe spec *)",
       "Bash(git commit -m 'docs: add UI optimization and new pages plan *)",
-      "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' url *)"
+      "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' url *)",
+      "Bash(git commit -m 'feat: implement multi-page router architecture with 6 routes *)",
+      "Bash(npm uninstall *)"
     ]
   }
 }
