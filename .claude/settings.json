@@ -25,7 +25,16 @@
       "Bash(git commit -m 'docs: add UI optimization and new pages plan *)",
       "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' url *)",
       "Bash(git commit -m 'feat: implement multi-page router architecture with 6 routes *)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(git commit -m 'feat: add header navigation + real charts on Analytics page *)",
+      "Bash(xargs wc -l)",
+      "Bash(mkdir -p \"c:/Users/81247/.claude/projects/c--Users-81247-low-altitude-platform/memory\")",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d\\)} messages'\\)\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"
     ]
   }
 }

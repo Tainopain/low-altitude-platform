@@ -16,15 +16,15 @@ import { useDroneStore } from '../stores/droneStore';
  */
 export function DashboardPage() {
   const navigate = useNavigate();
-  const loadMockEvents = useEventStore((s) => s.loadMockEvents);
-  const loadMockDrones = useDroneStore((s) => s.loadMockDrones);
+  const loadEvents = useEventStore((s) => s.loadEvents);
+  const loadDrones = useDroneStore((s) => s.loadDrones);
   const events = useEventStore((s) => s.events);
 
   const [kpiCollapsed, setKpiCollapsed] = useState(false);
   const [dronePanelCollapsed, setDronePanelCollapsed] = useState(false);
 
-  // 初始化数据
-  useEffect(() => { loadMockEvents(); loadMockDrones(); }, [loadMockEvents, loadMockDrones]);
+  // 初始化数据 (API 优先，fallback mock)
+  useEffect(() => { loadEvents(); loadDrones(); }, [loadEvents, loadDrones]);
 
   // 高危事件 Toast 通知（监听新事件）
   const prevHighCount = useRef(events.filter((e) => e.level === 'high').length);
