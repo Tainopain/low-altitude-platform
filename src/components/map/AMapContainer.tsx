@@ -90,7 +90,8 @@ export function AMapContainer() {
 
     markersRef.current.forEach((m, key) => { if (key.startsWith('evt_')) m.setMap(null); });
 
-    events.forEach((evt) => {
+    // 已关闭/已处理的事件不在地图上显示
+    events.filter((e) => e.status !== 'closed' && e.status !== 'resolved').forEach((evt) => {
       const color = evt.level === 'high' ? '#F85149' : evt.level === 'medium' ? '#D29922' : '#79C0FF';
       const pulseClass = evt.level === 'high' ? 'marker-pulse' : '';
       const marker = new AMap.Marker({
