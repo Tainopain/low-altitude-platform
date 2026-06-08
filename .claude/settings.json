@@ -17,7 +17,9 @@
       "WebSearch",
       "Bash(git commit -m 'fix: restrict all coordinates to verified land-only zones *)",
       "Bash(curl -s 'https://restapi.amap.com/v3/geocode/regeo?key=69beccf52b9d71c4e616938ada0c7834&location=106.532,29.595&extensions=base')",
-      "Bash(git commit -m 'verify: all 16 coordinates confirmed on land via AMap geocoding API *)"
+      "Bash(git commit -m 'verify: all 16 coordinates confirmed on land via AMap geocoding API *)",
+      "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' text *)",
+      "Bash(git commit -m 'fix: push all coordinates 3-9km inland from rivers with API verification *)"
     ]
   }
 }

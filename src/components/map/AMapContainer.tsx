@@ -7,10 +7,10 @@ import { MapLegend } from './MapLegend';
 import { DroneVideoWindow } from './DroneVideoWindow';
 
 // 试点路段 G50 中点坐标（重庆附近，Demo 用）
-const CENTER: [number, number] = [106.540, 29.550];
+const CENTER: [number, number] = [106.530, 29.540];
 
 export function AMapContainer() {
-  const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 13 });
+  const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 11 });
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const markersRef = useRef<Map<string, any>>(new Map());
