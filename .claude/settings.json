@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m 'fix: rename 机巢→机舱, hide drone when overlapping with hangar *)"
+      "Bash(git commit -m 'fix: rename 机巢→机舱, hide drone when overlapping with hangar *)",
+      "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' click *)",
+      "Bash(git commit -m 'fix: show drone marker during dispatch even if overlapping with hangar *)"
     ]
   }
 }

@@ -63,7 +63,7 @@ export function AMapContainer() {
   const isSameCoords = (a: [number, number], b: [number, number]) =>
     a[0] === b[0] && a[1] === b[1];
 
-  // 同步无人机 Markers（与机舱重叠时只显示机舱）
+  // 同步无人机 Markers（与机舱重叠且未被调度时只显示机舱）
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
@@ -71,10 +71,15 @@ export function AMapContainer() {
 
     markersRef.current.forEach((m, key) => { if (key.startsWith('drone_')) m.setMap(null); });
 
+    // 正在被调度的无人机 ID 集合
+    const dispatchingDroneIds = new Set(
+      events.filter((e) => e.status === 'dispatching' && e.droneId).map((e) => e.droneId!)
+    );
+
     drones.forEach((drone) => {
       if (drone.status === 'offline') return;
-      // 无人机与机舱在同一位置时，隐藏无人机，只显示机舱
-      if (isSameCoords(drone.coordinates, HANGAR_COORDS)) return;
+      // 无人机与机舱在同一位置时隐藏，但正在被调度的除外（需要有 Marker 才能看到飞行动画）
+      if (isSameCoords(drone.coordinates, HANGAR_COORDS) && !dispatchingDroneIds.has(drone.id)) return;
       const color = drone.status === 'flying' ? '#3FB950' : '#D29922';
       const marker = new AMap.Marker({
         position: drone.coordinates,
@@ -87,7 +92,7 @@ export function AMapContainer() {
       marker.setMap(amap);
       markersRef.current.set(`drone_${drone.id}`, marker);
     });
-  }, [amap, drones]);
+  }, [amap, drones, events]);
 
   // 调度动画：监听 events 中 status='dispatching' 的事件
   useEffect(() => {
