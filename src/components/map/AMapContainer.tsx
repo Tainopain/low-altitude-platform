@@ -17,6 +17,46 @@ export function AMapContainer() {
   const markersRef = useRef<Map<string, any>>(new Map());
   const [keyWarningDismissed, setKeyWarningDismissed] = useState(false);
 
+  // G50 高速公路 + 巡逻路线
+  const G50_ROUTE: Array<[number, number]> = [
+    [106.490, 29.475], [106.500, 29.480], [106.510, 29.485],
+    [106.520, 29.492], [106.530, 29.500], [106.540, 29.508],
+    [106.550, 29.515], [106.560, 29.520], [106.570, 29.510],
+    [106.575, 29.500], [106.570, 29.490], [106.560, 29.482],
+    [106.550, 29.478], [106.540, 29.476], [106.530, 29.478],
+    [106.520, 29.482], [106.510, 29.488], [106.500, 29.485],
+  ];
+
+  // 绘制 G50 高速路线 + 巡逻航线
+  useEffect(() => {
+    if (!amap) return;
+    const AMap = (window as any).AMap;
+    if (!AMap) return;
+
+    // G50 高速公路（粗实线）
+    const highway = new AMap.Polyline({
+      path: G50_ROUTE,
+      strokeColor: '#58A6FF',
+      strokeWeight: 4,
+      strokeOpacity: 0.5,
+      strokeStyle: 'solid',
+    });
+    highway.setMap(amap);
+    markersRef.current.set('g50_highway', highway);
+
+    // 巡逻航线（虚线）
+    const patrolLine = new AMap.Polyline({
+      path: G50_ROUTE,
+      strokeColor: '#3FB950',
+      strokeWeight: 2,
+      strokeOpacity: 0.4,
+      strokeStyle: 'dashed',
+      strokeDasharray: [8, 12],
+    });
+    patrolLine.setMap(amap);
+    markersRef.current.set('g50_patrol', patrolLine);
+  }, [amap]);
+
   // 初始化机舱 Markers（每架无人机对应一个机舱，一对一）
   useEffect(() => {
     if (!amap) return;

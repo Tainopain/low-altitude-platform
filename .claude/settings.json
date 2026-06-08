@@ -44,7 +44,8 @@
       "Bash(timeout 8 node dist/index.js)",
       "Bash(timeout 10 node dist/index.js)",
       "Bash(git commit -m 'test: end-to-end API smoke test passed \\(health/login/events/drones/chat/patch\\) *)",
-      "Bash(git commit -m 'fix: dispatch sets drone status + CSV export works + patrol skips dispatched *)"
+      "Bash(git commit -m 'fix: dispatch sets drone status + CSV export works + patrol skips dispatched *)",
+      "Bash(git commit -m 'feat: add G50 highway + patrol route visualization on map *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"
