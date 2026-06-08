@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { initWebSocket } from './ws';
 import { startAIDetector } from './ai/detector';
+import { startPatrolSimulator } from './ai/patrol';
 import { seedIfEmpty } from './db/seed';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
@@ -38,7 +39,9 @@ server.listen(PORT, () => {
   console.log(`低空平台 API Server running on http://localhost:${PORT}`);
   console.log(`WebSocket on ws://localhost:${PORT}/ws`);
 
-  // 启动 AI 检测模拟器（默认每 30 秒生成一条事件）
-  const aiInterval = process.env.AI_INTERVAL ? parseInt(process.env.AI_INTERVAL) : 30000;
-  startAIDetector(aiInterval);
+  // AI 检测模拟器（默认每 30 秒生成一条事件）
+  startAIDetector(parseInt(process.env.AI_INTERVAL || '30000'));
+
+  // 无人机巡逻模拟器（默认每 3 秒更新位置）
+  startPatrolSimulator(parseInt(process.env.PATROL_INTERVAL || '3000'));
 });
