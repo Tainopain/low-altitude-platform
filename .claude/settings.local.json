@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"c:\\\\Users\\\\81247\\\\ai-synergy-cluster\" -type f -not -path \"*/\\\\.*\")",
+      "Bash(ls -la \"c:\\\\Users\\\\81247\\\\.claude\\\\projects\\\\c--Users-81247-low-altitude-platform\\\\memory\\\\\" 2>/dev/null || echo \"No memory directory\")",
+      "Read(//c/Users/81247/.claude/projects/c--Users-81247-low-altitude-platform/memory\" 2>/dev/**)",
+      "Bash(ls -la \"c:\\\\Users\\\\81247\\\\.claude\\\\projects\\\\\" 2>/dev/null)",
+      "Read(//c/Users/81247/.claude/projects\" 2>/dev/**)",
+      "Bash(ls -la \"c:/Users/81247/.claude/projects/\")",
+      "Read(//c/Users/81247/.claude/projects/**)"
+    ]
+  }
+}
