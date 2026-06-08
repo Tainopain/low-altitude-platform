@@ -51,7 +51,7 @@ export function useAMap({ containerId, center, zoom }: UseAMapOptions) {
             zoom,
             resizeEnable: true,
             features: ['bg', 'road', 'building', 'point'],
-            mapStyle: 'amap://styles/light',
+            mapStyle: 'amap://styles/dark',
             showRoad: true,
             roadStyle: { color: '#FFFFFF', borderColor: '#D0D7DE', weight: 2 },
           });
