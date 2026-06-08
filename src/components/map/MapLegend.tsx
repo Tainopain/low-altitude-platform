@@ -7,7 +7,7 @@ export function MapLegend() {
       background: 'rgba(22,27,34,0.85)', borderRadius: 6, padding: '8px 12px',
       border: '1px solid #30363D',
     }}>
-      <Space direction="vertical" size={4}>
+      <Space orientation="vertical" size={4}>
         <span><span style={{ color: '#F85149', fontSize: 16 }}>●</span> 高危事件</span>
         <span><span style={{ color: '#D29922', fontSize: 16 }}>●</span> 中危事件</span>
         <span><span style={{ color: '#79C0FF', fontSize: 16 }}>●</span> 低危事件</span>

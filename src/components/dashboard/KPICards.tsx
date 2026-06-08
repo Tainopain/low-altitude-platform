@@ -4,6 +4,10 @@ import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
 import { CountUp } from '../shared/CountUp';
 
+function valueStyles(extra?: React.CSSProperties): React.CSSProperties {
+  return { fontSize: 26, fontWeight: 700, ...extra };
+}
+
 export function KPICards() {
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
@@ -21,7 +25,7 @@ export function KPICards() {
             title={<span><AlertOutlined style={{ color: '#F85149' }} /> 今日事件</span>}
             value={events.length}
             formatter={(v) => <CountUp end={Number(v)} />}
-            valueStyle={{ fontSize: 26, fontWeight: 700 }}
+            styles={{ value: valueStyles() }}
           />
         </Card>
       </Col>
@@ -37,7 +41,7 @@ export function KPICards() {
             title={<span><ClockCircleOutlined /> 待处理</span>}
             value={pendingCount}
             formatter={(v) => <CountUp end={Number(v)} />}
-            valueStyle={{ fontSize: 26, fontWeight: 700, color: highRiskPending ? '#F85149' : undefined }}
+            styles={{ value: valueStyles(highRiskPending ? { color: '#F85149' } : undefined) }}
           />
         </Card>
       </Col>
@@ -47,7 +51,7 @@ export function KPICards() {
             title={<span><SendOutlined style={{ color: '#3FB950' }} /> 在线无人机</span>}
             value={onlineDrones}
             suffix={`/ ${drones.length}`}
-            valueStyle={{ fontSize: 26, fontWeight: 700 }}
+            styles={{ value: valueStyles() }}
           />
         </Card>
       </Col>
@@ -56,7 +60,7 @@ export function KPICards() {
           <Statistic
             title={<span><CameraOutlined style={{ color: '#3FB950' }} /> 摄像头</span>}
             value="4/4"
-            valueStyle={{ fontSize: 26, fontWeight: 700 }}
+            styles={{ value: valueStyles() }}
           />
         </Card>
       </Col>

@@ -28,7 +28,7 @@ export function AIDrawer() {
       title="🤖 AI助手 · DeepSeek V3"
       open={aiDrawerOpen}
       onClose={() => setAIDrawer(false)}
-      width={480}
+      size={480}
       styles={{ body: { padding: '0 16px', display: 'flex', flexDirection: 'column', height: 'calc(100% - 55px)' } }}
     >
       <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>

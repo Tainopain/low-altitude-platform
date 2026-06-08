@@ -22,7 +22,7 @@ export function HistoryDrawer() {
       title="📋 历史查询"
       open={historyDrawerOpen}
       onClose={() => setHistoryDrawer(false)}
-      width="100%"
+      size="large"
       styles={{ body: { padding: '0 24px' } }}
     >
       <FilterBar

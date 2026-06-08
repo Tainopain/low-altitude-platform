@@ -129,7 +129,7 @@ export function AMapContainer() {
       <div id="amap-container" style={{ height: '100%', width: '100%' }} />
       {!loaded && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Spin tip="地图加载中..." />
+          <Spin description="地图加载中..." />
         </div>
       )}
       {loaded && <MapLegend />}

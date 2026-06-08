@@ -8,7 +8,11 @@
       "Read(//c/Users/81247/.claude/projects\" 2>/dev/**)",
       "Bash(ls -la \"c:/Users/81247/.claude/projects/\")",
       "Read(//c/Users/81247/.claude/projects/**)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git commit -m 'feat: implement low-altitude drone inspection platform MVP *)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)"
     ]
   }
 }
