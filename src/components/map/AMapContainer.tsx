@@ -15,7 +15,6 @@ export function AMapContainer() {
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const markersRef = useRef<Map<string, any>>(new Map());
-  const prevDispatchingRef = useRef<Set<string>>(new Set());
   const [keyWarningDismissed, setKeyWarningDismissed] = useState(false);
 
   // 初始化固定 Marker（机舱）
@@ -74,15 +73,17 @@ export function AMapContainer() {
     markersRef.current.forEach((m, key) => { if (key.startsWith('drone_')) { m.setMap(null); oldKeys.push(key); } });
     oldKeys.forEach((k) => markersRef.current.delete(k));
 
-    // 正在被调度的无人机 ID 集合
-    const dispatchingDroneIds = new Set(
-      events.filter((e) => e.status === 'dispatching' && e.droneId).map((e) => e.droneId!)
+    // 正在飞行中的无人机 ID 集合（飞行动画自己创建临时 marker）
+    const flyingDroneIds = new Set(
+      events.filter((e) => (e.status === 'dispatching' || e.status === 'arrived') && e.droneId).map((e) => e.droneId!)
     );
 
     drones.forEach((drone) => {
       if (drone.status === 'offline') return;
-      // 无人机与机舱在同一位置时隐藏，但正在被调度的除外（需要有 Marker 才能看到飞行动画）
-      if (isSameCoords(drone.coordinates, HANGAR_COORDS) && !dispatchingDroneIds.has(drone.id)) return;
+      // 飞行中的无人机由动画负责渲染，不创建静态 marker
+      if (flyingDroneIds.has(drone.id)) return;
+      // 无人机与机舱在同一位置时隐藏（待命状态）
+      if (isSameCoords(drone.coordinates, HANGAR_COORDS)) return;
       const color = drone.status === 'flying' ? '#3FB950' : '#D29922';
       const marker = new AMap.Marker({
         position: drone.coordinates,
@@ -97,78 +98,138 @@ export function AMapContainer() {
     });
   }, [amap, drones, events]);
 
-  // 调度动画：监听 events 中 status='dispatching' 的事件
+  // 计算方位角（0-360，正北为0）
+  const bearing = (from: [number, number], to: [number, number]) => {
+    const [lng1, lat1] = from;
+    const [lng2, lat2] = to;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const radLat1 = lat1 * Math.PI / 180;
+    const radLat2 = lat2 * Math.PI / 180;
+    const y = Math.sin(dLng) * Math.cos(radLat2);
+    const x = Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(dLng);
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  };
+
+  // 构建飞行中的 marker HTML（含旋转方向）
+  const flightMarkerHTML = (heading: number) =>
+    `<div style="font-size:20px;text-align:center;filter:drop-shadow(0 0 6px #FFD700);transform:rotate(${heading}deg);">✈️</div>`;
+
+  // 沿路径飞行动画（destroy-recreate 方式，兼容 AMap 2.0 WebGL）
+  const animateFlight = (
+    path: Array<[number, number]>,
+    durationMs: number,
+    onDone: () => void,
+  ) => {
+    const frameInterval = 50;
+    const startTime = Date.now();
+    let prevMarker: any = null;
+    let polyline: any = null;
+
+    // 创建轨迹线
+    polyline = new (window as any).AMap.Polyline({
+      path,
+      strokeColor: '#FFD700',
+      strokeWeight: 3,
+      strokeOpacity: 0.7,
+      strokeStyle: 'dashed',
+      showDir: true,
+    });
+    polyline.setMap(amap);
+
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(elapsed / durationMs, 1);
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      // 在路径上插值位置
+      const segCount = path.length - 1;
+      const totalT = eased * segCount;
+      const segIdx = Math.min(Math.floor(totalT), segCount - 1);
+      const segT = totalT - segIdx;
+      const segFrom = path[segIdx];
+      const segTo = path[segIdx + 1];
+      const lng = segFrom[0] + (segTo[0] - segFrom[0]) * segT;
+      const lat = segFrom[1] + (segTo[1] - segFrom[1]) * segT;
+      const dir = bearing(segFrom, segTo);
+
+      if (prevMarker) prevMarker.setMap(null);
+
+      if (t < 1) {
+        prevMarker = new (window as any).AMap.Marker({
+          position: [lng, lat],
+          content: flightMarkerHTML(dir),
+          offset: new (window as any).AMap.Pixel(-13, -13),
+          zIndex: 200,
+        });
+        prevMarker.setMap(amap);
+        setTimeout(tick, frameInterval);
+      } else {
+        // 最后一帧在终点
+        prevMarker = new (window as any).AMap.Marker({
+          position: path[path.length - 1],
+          content: flightMarkerHTML(bearing(path[path.length - 2], path[path.length - 1])),
+          offset: new (window as any).AMap.Pixel(-13, -13),
+          zIndex: 200,
+        });
+        prevMarker.setMap(amap);
+
+        // 短暂停留后清理
+        setTimeout(() => {
+          if (prevMarker) prevMarker.setMap(null);
+          if (polyline) polyline.setMap(null);
+        }, 2000);
+
+        onDone();
+      }
+    };
+    tick();
+
+    // 返回清理函数
+    return () => {
+      if (polyline) polyline.setMap(null);
+    };
+  };
+
+  // 调度动画：监听 dispatching → outward，arrived → return
+  const animatingRef = useRef<Map<string, () => void>>(new Map());
+
   useEffect(() => {
     if (!amap) return;
-    const AMap = (window as any).AMap;
-    if (!AMap) return;
 
+    // 出发：status='dispatching' 且有 droneId
     const dispatchingEvents = events.filter((e) => e.status === 'dispatching' && e.droneId);
-    const currentIds = new Set(dispatchingEvents.map((e) => e.id));
-
     dispatchingEvents.forEach((evt) => {
-      if (prevDispatchingRef.current.has(evt.id)) return;
+      if (animatingRef.current.has(`out_${evt.id}`)) return;
 
       const drone = drones.find((d) => d.id === evt.droneId);
       if (!drone) return;
 
-      const from = drone.coordinates;
-      const to = evt.coordinates;
-
-      // 创建轨迹虚线
-      const polyline = new AMap.Polyline({
-        path: [from, to],
-        strokeColor: '#FFD700',
-        strokeWeight: 4,
-        strokeOpacity: 0.8,
-        strokeStyle: 'dashed',
-        showDir: true,
-      });
-      polyline.setMap(amap);
-
-      // 飞行动画：AMap 2.0 WebGL 中 custom content marker 的 setPosition 不触发重绘
-      // 因此采用移除后在新位置重建的方式实现动画
-      const duration = 4000;
-      const frameInterval = 50; // 20fps
-      const startTime = Date.now();
-      let prevMarker: any = null;
-      let animFrame: number = 0;
-
-      const tick = () => {
-        animFrame++;
-        const elapsed = Date.now() - startTime;
-        const t = Math.min(elapsed / duration, 1);
-        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        const lng = from[0] + (to[0] - from[0]) * eased;
-        const lat = from[1] + (to[1] - from[1]) * eased;
-
-        // 移除上一帧的临时 marker
-        if (prevMarker) {
-          prevMarker.setMap(null);
-        }
-
-        if (t < 1) {
-          // 在新位置创建临时 marker
-          prevMarker = new AMap.Marker({
-            position: [lng, lat],
-            content: '<div style="font-size:20px;text-align:center;filter:drop-shadow(0 0 4px #FFD700);">✈️</div>',
-            offset: new AMap.Pixel(-12, -12),
-            zIndex: 200,
-          });
-          prevMarker.setMap(amap);
-          setTimeout(tick, frameInterval);
-        }
-      };
-      tick();
-
-      // 动画完成后清理
-      setTimeout(() => {
-        if (prevMarker) prevMarker.setMap(null);
-        polyline.setMap(null);
-      }, duration + 200);
+      const cancel = animateFlight(
+        [drone.coordinates, evt.coordinates],
+        8000,
+        () => {
+          animatingRef.current.delete(`out_${evt.id}`);
+        },
+      );
+      animatingRef.current.set(`out_${evt.id}`, cancel);
     });
 
-    prevDispatchingRef.current = currentIds;
+    // 返航：status='arrived' 且有 droneId，且 outward 已完成
+    const arrivedEvents = events.filter((e) => e.status === 'arrived' && e.droneId);
+    arrivedEvents.forEach((evt) => {
+      if (animatingRef.current.has(`back_${evt.id}`)) return;
+      // 确保 outward 已完成
+      if (animatingRef.current.has(`out_${evt.id}`)) return;
+
+      const cancel = animateFlight(
+        [evt.coordinates, HANGAR_COORDS],
+        8000,
+        () => {
+          animatingRef.current.delete(`back_${evt.id}`);
+        },
+      );
+      animatingRef.current.set(`back_${evt.id}`, cancel);
+    });
   }, [events, drones, amap]);
 
   if (error) return (

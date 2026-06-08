@@ -25,7 +25,7 @@ export function EventCard({ event, style }: Props) {
   const handleDispatch = () => {
     // 找到空闲且未被其他事件调度的无人机
     const busyDroneIds = new Set(
-      events.filter((e) => e.status === 'dispatching' && e.droneId).map((e) => e.droneId!)
+      events.filter((e) => (e.status === 'dispatching' || e.status === 'arrived') && e.droneId).map((e) => e.droneId!)
     );
     const standbyDrone = drones.find((d) => d.status === 'standby' && !busyDroneIds.has(d.id));
     if (!standbyDrone) return;
@@ -34,11 +34,17 @@ export function EventCard({ event, style }: Props) {
     updateEvent(event.id, { status: 'dispatching', droneId });
     setTask(droneId, `抵近中: ${event.roadName} ${event.stakeNumber}`, 80);
 
-    // Simulate arrival after 4 seconds
+    // 8 秒后抵达事件现场
     setTimeout(() => {
       updateEvent(event.id, { status: 'arrived' });
       setTask(droneId, '抵近确认中', 0);
-    }, 4000);
+
+      // 返航：10 秒后（飞行 8 秒 + 逗留 2 秒）回到机舱
+      setTimeout(() => {
+        updateEvent(event.id, { status: 'resolved' });
+        setTask(droneId, '待命', 0);
+      }, 10000);
+    }, 8000);
   };
 
   const isDispatchable = event.status === 'pending' || event.status === 'confirmed';
