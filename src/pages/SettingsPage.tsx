@@ -3,7 +3,7 @@ import { Card, Typography, Button, Switch, Select, Input, Tag } from 'antd';
 import { ArrowLeftOutlined, UserOutlined } from '@ant-design/icons';
 import { useUIStore } from '../stores/uiStore';
 
-export function SettingsPage() {
+export default function SettingsPage() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useUIStore();
   const username = localStorage.getItem('username') || '未登录';

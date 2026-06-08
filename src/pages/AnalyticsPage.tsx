@@ -6,7 +6,7 @@ import { useEventStore } from '../stores/eventStore';
 import { EVENT_TYPE_LABELS } from '../types/event';
 
 const PIE_COLORS = ['#F85149', '#D29922', '#79C0FF', '#58A6FF', '#3FB950'];
-export function AnalyticsPage() {
+export default function AnalyticsPage() {
   const navigate = useNavigate();
   const events = useEventStore((s) => s.events);
 

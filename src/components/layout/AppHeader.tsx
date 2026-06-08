@@ -3,6 +3,7 @@ import { Layout, Space, Tag, Button } from 'antd';
 import {
   SunOutlined, MoonOutlined, SettingOutlined,
   SendOutlined, BarChartOutlined, HomeOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 import { useUIStore } from '../../stores/uiStore';
 import { useEventStore } from '../../stores/eventStore';
@@ -69,6 +70,7 @@ export function AppHeader() {
           {time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
         </span>
         <Button type="text" size="small" icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />} onClick={toggleTheme} />
+        <Button type="text" size="small" icon={<LogoutOutlined />} onClick={() => { localStorage.clear(); navigate('/login'); }} />
       </Space>
     </Layout.Header>
   );

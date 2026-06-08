@@ -4,7 +4,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useDroneStore } from '../stores/droneStore';
 import { DRONE_STATUS_CONFIG } from '../types/drone';
 
-export function DronePage() {
+export default function DronePage() {
   const navigate = useNavigate();
   const drones = useDroneStore((s) => s.drones);
 

@@ -8,11 +8,17 @@ import { useUIStore } from '../stores/uiStore';
  * 登录页
  * MVP: 用户名+密码 + 角色选择，登录成功后存 JWT + 跳转 /
  */
-export function LoginPage() {
+export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'operator' | 'admin'>('operator');
   const navigate = useNavigate();
   const theme = useUIStore((s) => s.theme);
+
+  // 已登录则跳转到首页
+  if (localStorage.getItem('token')) {
+    navigate('/', { replace: true });
+    return null;
+  }
 
   const handleLogin = async (values: { username: string; password: string }) => {
     setLoading(true);

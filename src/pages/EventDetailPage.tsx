@@ -8,7 +8,7 @@ import { LevelBadge } from '../components/shared/LevelBadge';
 import { StatusTag } from '../components/shared/StatusTag';
 import { EVENT_TYPE_LABELS } from '../types/event';
 
-export function EventDetailPage() {
+export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const events = useEventStore((s) => s.events);
