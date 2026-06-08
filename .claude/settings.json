@@ -8,7 +8,8 @@
       "Bash(git commit -m 'feat: implement round-trip drone dispatch animation with heading *)",
       "Bash(git commit -m 'feat: enforce 1:1 drone-to-hangar relationship *)",
       "Bash(git commit -m 'feat: expand mock data with more events and drones *)",
-      "Bash(git commit -m 'fix: redistribute events and hangars from linear to area scatter *)"
+      "Bash(git commit -m 'fix: redistribute events and hangars from linear to area scatter *)",
+      "Bash(git commit -m 'feat: switch to light map style with enhanced road visibility *)"
     ]
   }
 }

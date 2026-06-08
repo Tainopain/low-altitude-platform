@@ -50,8 +50,10 @@ export function useAMap({ containerId, center, zoom }: UseAMapOptions) {
             center,
             zoom,
             resizeEnable: true,
-            features: ['bg', 'road', 'building'],
-            mapStyle: 'amap://styles/dark',
+            features: ['bg', 'road', 'building', 'point'],
+            mapStyle: 'amap://styles/light',
+            showRoad: true,
+            roadStyle: { color: '#FFFFFF', borderColor: '#D0D7DE', weight: 2 },
           });
 
           map.on('complete', () => {

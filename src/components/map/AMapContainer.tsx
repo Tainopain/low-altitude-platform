@@ -10,7 +10,7 @@ import { DroneVideoWindow } from './DroneVideoWindow';
 const CENTER: [number, number] = [106.551, 29.562];
 
 export function AMapContainer() {
-  const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 12 });
+  const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 13 });
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const markersRef = useRef<Map<string, any>>(new Map());
