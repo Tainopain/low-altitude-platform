@@ -3,7 +3,6 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { initWebSocket } from './ws.js';
 import { startAIDetector } from './ai/detector.js';
-import { store } from './db/store.js';
 import { seedIfEmpty } from './db/seed.js';
 import authRoutes from './routes/auth.js';
 import eventRoutes from './routes/events.js';

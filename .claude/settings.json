@@ -36,7 +36,8 @@
       "Bash(pkill -f \"tsx\")",
       "Bash(taskkill //F //IM node.exe)",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d\\)} events'\\)\")",
-      "Bash(git commit -m 'feat: add AI detection simulator + real-time WebSocket + LLM chat support *)"
+      "Bash(git commit -m 'feat: add AI detection simulator + real-time WebSocket + LLM chat support *)",
+      "Bash(git commit -m 'docs: add comprehensive README + dev tooling + env examples *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"
