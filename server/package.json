@@ -2,7 +2,6 @@
   "name": "low-altitude-server",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "seed": "tsx src/db/seed.ts",

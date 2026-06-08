@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { signToken } from '../middleware/auth.js';
-import { store } from '../db/store.js';
+import { signToken } from '../middleware/auth';
+import { store } from '../db/store';
 
 const router = Router();
 

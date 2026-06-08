@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import { initWebSocket } from './ws.js';
-import { startAIDetector } from './ai/detector.js';
-import { seedIfEmpty } from './db/seed.js';
-import authRoutes from './routes/auth.js';
-import eventRoutes from './routes/events.js';
-import droneRoutes from './routes/drones.js';
-import chatRoutes from './routes/chat.js';
+import { initWebSocket } from './ws';
+import { startAIDetector } from './ai/detector';
+import { seedIfEmpty } from './db/seed';
+import authRoutes from './routes/auth';
+import eventRoutes from './routes/events';
+import droneRoutes from './routes/drones';
+import chatRoutes from './routes/chat';
 
 const app = express();
 const server = createServer(app);

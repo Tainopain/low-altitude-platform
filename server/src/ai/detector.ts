@@ -3,8 +3,8 @@
  * 模拟真实 YOLOv8 检测行为：加权概率、时段模式、路段热点
  */
 import { v4 as uuid } from 'uuid';
-import { store } from '../db/store.js';
-import { broadcast } from '../ws.js';
+import { store } from '../db/store';
+import { broadcast } from '../ws';
 
 // 事件类型基础概率 (事故<拥堵<烟雾≈障碍物<火焰)
 const TYPE_WEIGHTS: Record<string, number> = {

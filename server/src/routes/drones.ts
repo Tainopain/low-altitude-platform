@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { store } from '../db/store.js';
-import { authMiddleware } from '../middleware/auth.js';
-import { broadcast } from '../ws.js';
+import { store } from '../db/store';
+import { authMiddleware } from '../middleware/auth';
+import { broadcast } from '../ws';
 
 const router = Router();
 router.use(authMiddleware);

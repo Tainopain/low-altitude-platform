@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
-import { store } from '../db/store.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { store } from '../db/store';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 router.use(authMiddleware);

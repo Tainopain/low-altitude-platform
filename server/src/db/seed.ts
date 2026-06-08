@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { store } from './store.js';
+import { store } from './store';
 
 const now = Date.now();
 
