@@ -15,7 +15,9 @@
       "Bash(git commit -m 'fix: move all coordinates off river onto land *)",
       "Bash(git commit -m 'fix: relocate all points to verified land landmarks *)",
       "WebSearch",
-      "Bash(git commit -m 'fix: restrict all coordinates to verified land-only zones *)"
+      "Bash(git commit -m 'fix: restrict all coordinates to verified land-only zones *)",
+      "Bash(curl -s 'https://restapi.amap.com/v3/geocode/regeo?key=69beccf52b9d71c4e616938ada0c7834&location=106.532,29.595&extensions=base')",
+      "Bash(git commit -m 'verify: all 16 coordinates confirmed on land via AMap geocoding API *)"
     ]
   }
 }
