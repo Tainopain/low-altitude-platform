@@ -12,7 +12,8 @@
       "Bash(git commit -m 'feat: switch to light map style with enhanced road visibility *)",
       "Bash(git commit -m 'fix: revert to dark map style, keep road visibility enhancements *)",
       "Bash(git commit -m 'fix: enhance road visibility in dark map style *)",
-      "Bash(git commit -m 'fix: move all coordinates off river onto land *)"
+      "Bash(git commit -m 'fix: move all coordinates off river onto land *)",
+      "Bash(git commit -m 'fix: relocate all points to verified land landmarks *)"
     ]
   }
 }
