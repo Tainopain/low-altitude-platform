@@ -69,7 +69,10 @@ export function AMapContainer() {
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    markersRef.current.forEach((m, key) => { if (key.startsWith('drone_')) m.setMap(null); });
+    // 清理旧的无人机 markers
+    const oldKeys: string[] = [];
+    markersRef.current.forEach((m, key) => { if (key.startsWith('drone_')) { m.setMap(null); oldKeys.push(key); } });
+    oldKeys.forEach((k) => markersRef.current.delete(k));
 
     // 正在被调度的无人机 ID 集合
     const dispatchingDroneIds = new Set(
@@ -104,31 +107,65 @@ export function AMapContainer() {
     const currentIds = new Set(dispatchingEvents.map((e) => e.id));
 
     dispatchingEvents.forEach((evt) => {
-      if (prevDispatchingRef.current.has(evt.id)) return; // 已启动动画
+      if (prevDispatchingRef.current.has(evt.id)) return;
 
       const drone = drones.find((d) => d.id === evt.droneId);
       if (!drone) return;
 
-      // 创建轨迹线
+      const from = drone.coordinates;
+      const to = evt.coordinates;
+
+      // 创建轨迹虚线
       const polyline = new AMap.Polyline({
-        path: [drone.coordinates, evt.coordinates],
-        strokeColor: '#58A6FF',
-        strokeWeight: 2,
+        path: [from, to],
+        strokeColor: '#FFD700',
+        strokeWeight: 4,
+        strokeOpacity: 0.8,
         strokeStyle: 'dashed',
-        strokeDasharray: [10, 10],
+        showDir: true,
       });
       polyline.setMap(amap);
 
-      // 创建临时 Marker 做动画
-      const droneMarker = markersRef.current.get(`drone_${drone.id}`);
-      if (droneMarker) {
-        droneMarker.moveTo(evt.coordinates, { duration: 4000, autoRotation: true });
-      }
+      // 飞行动画：AMap 2.0 WebGL 中 custom content marker 的 setPosition 不触发重绘
+      // 因此采用移除后在新位置重建的方式实现动画
+      const duration = 4000;
+      const frameInterval = 50; // 20fps
+      const startTime = Date.now();
+      let prevMarker: any = null;
+      let animFrame: number = 0;
 
-      // 动画结束后清理轨迹线
+      const tick = () => {
+        animFrame++;
+        const elapsed = Date.now() - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const lng = from[0] + (to[0] - from[0]) * eased;
+        const lat = from[1] + (to[1] - from[1]) * eased;
+
+        // 移除上一帧的临时 marker
+        if (prevMarker) {
+          prevMarker.setMap(null);
+        }
+
+        if (t < 1) {
+          // 在新位置创建临时 marker
+          prevMarker = new AMap.Marker({
+            position: [lng, lat],
+            content: '<div style="font-size:20px;text-align:center;filter:drop-shadow(0 0 4px #FFD700);">✈️</div>',
+            offset: new AMap.Pixel(-12, -12),
+            zIndex: 200,
+          });
+          prevMarker.setMap(amap);
+          setTimeout(tick, frameInterval);
+        }
+      };
+      tick();
+
+      // 动画完成后清理
       setTimeout(() => {
+        if (prevMarker) prevMarker.setMap(null);
         polyline.setMap(null);
-      }, 5000);
+      }, duration + 200);
     });
 
     prevDispatchingRef.current = currentIds;

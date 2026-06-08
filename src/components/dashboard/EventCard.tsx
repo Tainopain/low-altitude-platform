@@ -12,7 +12,9 @@ interface Props { event: HighwayEvent; style?: React.CSSProperties; }
 
 export function EventCard({ event, style }: Props) {
   const updateEvent = useEventStore((s) => s.updateEvent);
+  const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
+  const setTask = useDroneStore((s) => s.setTask);
   const showVideoWindow = useUIStore((s) => s.showVideoWindow);
   const cfg = EVENT_LEVEL_CONFIG[event.level];
 
@@ -21,13 +23,21 @@ export function EventCard({ event, style }: Props) {
   const handleConfirm = () => updateEvent(event.id, { status: 'confirmed', confirmedBy: '值班员' });
   const handleClose = () => updateEvent(event.id, { status: 'closed' });
   const handleDispatch = () => {
-    const standbyDrone = drones.find((d) => d.status === 'standby');
+    // 找到空闲且未被其他事件调度的无人机
+    const busyDroneIds = new Set(
+      events.filter((e) => e.status === 'dispatching' && e.droneId).map((e) => e.droneId!)
+    );
+    const standbyDrone = drones.find((d) => d.status === 'standby' && !busyDroneIds.has(d.id));
     if (!standbyDrone) return;
+
     const droneId = standbyDrone.id;
     updateEvent(event.id, { status: 'dispatching', droneId });
+    setTask(droneId, `抵近中: ${event.roadName} ${event.stakeNumber}`, 80);
+
     // Simulate arrival after 4 seconds
     setTimeout(() => {
       updateEvent(event.id, { status: 'arrived' });
+      setTask(droneId, '抵近确认中', 0);
     }, 4000);
   };
 

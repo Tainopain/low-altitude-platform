@@ -70,7 +70,7 @@ export const useEventStore = create<EventStore>((set) => ({
         roadName: 'G50', stakeNumber: 'K12+300', direction: '进城',
         coordinates: [106.547, 29.558],
         source: 'drone', sourceDetail: '无人机俯拍: 多车追尾',
-        status: 'dispatching', droneId: 'DJI-002', createdAt: now - 120000,
+        status: 'confirmed', confirmedBy: '值班员张三', createdAt: now - 120000,
       },
     ];
     set({ events: mockEvents });
