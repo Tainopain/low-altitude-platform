@@ -10,6 +10,7 @@ import eventRoutes from './routes/events';
 import droneRoutes from './routes/drones';
 import chatRoutes from './routes/chat';
 import statsRoutes from './routes/stats';
+import adminRoutes from './routes/admin';
 
 const app = express();
 const server = createServer(app);
@@ -25,6 +26,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/drones', droneRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

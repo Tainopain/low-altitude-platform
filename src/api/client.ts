@@ -38,6 +38,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  post: (path: string, body?: Record<string, any>) =>
+    request<any>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+
   // Auth
   login: (username: string, password: string, role?: string) =>
     request<{ token: string; user: any }>('/api/auth/login', {

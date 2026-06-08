@@ -1,13 +1,33 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Typography, Button, Switch, Select, Input, Tag } from 'antd';
+import { Card, Typography, Button, Switch, Select, Input, Tag, App } from 'antd';
 import { ArrowLeftOutlined, UserOutlined } from '@ant-design/icons';
 import { useUIStore } from '../stores/uiStore';
+import { api } from '../api/client';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useUIStore();
+  const { message: msg } = App.useApp();
+  const [resetting, setResetting] = useState(false);
   const username = localStorage.getItem('username') || '未登录';
   const role = localStorage.getItem('role') || 'operator';
+
+  const handleReset = async () => {
+    if (!confirm('确定要重置所有数据为初始状态吗？此操作不可恢复。')) return;
+    setResetting(true);
+    try {
+      await api.post('/api/admin/reset');
+      msg.success('数据已重置');
+      window.location.href = '/';
+    } catch {
+      // Fallback to local clear
+      localStorage.clear();
+      window.location.href = '/login';
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
@@ -89,14 +109,8 @@ export default function SettingsPage() {
         <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 12 }}>
           清除本地数据并返回登录页。服务器数据不受影响，重启后会自动恢复种子数据。
         </Typography.Paragraph>
-        <Button
-          danger
-          onClick={() => {
-            localStorage.clear();
-            window.location.href = '/login';
-          }}
-        >
-          清除本地数据并登出
+        <Button danger loading={resetting} onClick={handleReset}>
+          重置全部数据
         </Button>
       </Card>
     </div>

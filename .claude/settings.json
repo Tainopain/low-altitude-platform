@@ -54,7 +54,8 @@
       "Bash(git commit -m 'chore: remove key warning alert banner from map *)",
       "Bash(git commit -m 'fix: hide closed/resolved events from map markers *)",
       "Bash(git commit -m 'fix: notification static → App.useApp + WebSocket auth guard + message→title *)",
-      "Bash(git commit -m 'feat: add data reset button to Settings page *)"
+      "Bash(git commit -m 'feat: add data reset button to Settings page *)",
+      "Bash(git commit -m 'feat: add server data reset endpoint + Settings integration *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"
