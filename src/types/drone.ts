@@ -4,7 +4,8 @@ export interface Drone {
   id: string;                    // e.g. "DJI-001"
   name: string;
   status: DroneStatus;
-  coordinates: [number, number];
+  coordinates: [number, number]; // 当前位置
+  homePosition: [number, number]; // 归属机舱位置（一对一关系）
   heading: number;               // 0-360 方向角
   battery: number;               // 0-100
   task: string;                  // e.g. "巡逻中" / "待命" / "抵近中"

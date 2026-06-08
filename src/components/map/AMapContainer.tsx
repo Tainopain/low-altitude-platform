@@ -8,7 +8,6 @@ import { DroneVideoWindow } from './DroneVideoWindow';
 
 // 试点路段 G50 中点坐标（重庆附近，Demo 用）
 const CENTER: [number, number] = [106.551, 29.562];
-const HANGAR_COORDS: [number, number] = [106.545, 29.550]; // 机舱位置
 
 export function AMapContainer() {
   const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 12 });
@@ -17,21 +16,31 @@ export function AMapContainer() {
   const markersRef = useRef<Map<string, any>>(new Map());
   const [keyWarningDismissed, setKeyWarningDismissed] = useState(false);
 
-  // 初始化固定 Marker（机舱）
+  // 初始化机舱 Markers（每架无人机对应一个机舱，一对一）
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    // 机舱 Marker
-    const hangarMarker = new AMap.Marker({
-      position: HANGAR_COORDS,
-      content: '<div style="font-size:20px;text-align:center;">🏠</div>',
-      offset: new AMap.Pixel(-12, -12),
+    // 清理旧机舱 markers
+    markersRef.current.forEach((m, key) => { if (key.startsWith('hangar_')) m.setMap(null); });
+
+    // 去重：不同无人机可能共享同一机舱位置
+    const seen = new Set<string>();
+    drones.forEach((drone) => {
+      const key = `${drone.homePosition[0]}_${drone.homePosition[1]}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      const marker = new AMap.Marker({
+        position: drone.homePosition,
+        content: '<div style="font-size:20px;text-align:center;">🏠</div>',
+        offset: new AMap.Pixel(-12, -12),
+      });
+      marker.setMap(amap);
+      markersRef.current.set(`hangar_${drone.id}`, marker);
     });
-    hangarMarker.setMap(amap);
-    markersRef.current.set('hangar', hangarMarker);
-  }, [amap]);
+  }, [amap, drones]);
 
   // 同步事件 Markers
   useEffect(() => {
@@ -39,7 +48,6 @@ export function AMapContainer() {
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    // 清理旧的事件 markers
     markersRef.current.forEach((m, key) => { if (key.startsWith('evt_')) m.setMap(null); });
 
     events.forEach((evt) => {
@@ -58,32 +66,31 @@ export function AMapContainer() {
     });
   }, [amap, events]);
 
-  // 判断坐标是否与机舱相同
   const isSameCoords = (a: [number, number], b: [number, number]) =>
     a[0] === b[0] && a[1] === b[1];
 
-  // 同步无人机 Markers（与机舱重叠且未被调度时只显示机舱）
+  // 同步无人机 Markers（停靠在机舱时隐藏，飞行中由动画渲染）
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    // 清理旧的无人机 markers
     const oldKeys: string[] = [];
     markersRef.current.forEach((m, key) => { if (key.startsWith('drone_')) { m.setMap(null); oldKeys.push(key); } });
     oldKeys.forEach((k) => markersRef.current.delete(k));
 
-    // 正在飞行中的无人机 ID 集合（飞行动画自己创建临时 marker）
+    // 正在飞行任务中的无人机 ID
     const flyingDroneIds = new Set(
       events.filter((e) => (e.status === 'dispatching' || e.status === 'arrived') && e.droneId).map((e) => e.droneId!)
     );
 
     drones.forEach((drone) => {
       if (drone.status === 'offline') return;
-      // 飞行中的无人机由动画负责渲染，不创建静态 marker
+      // 飞行任务中的无人机由动画负责渲染
       if (flyingDroneIds.has(drone.id)) return;
-      // 无人机与机舱在同一位置时隐藏（待命状态）
-      if (isSameCoords(drone.coordinates, HANGAR_COORDS)) return;
+      // 停靠在自己机舱位置时隐藏（只显示机舱图标）
+      if (isSameCoords(drone.coordinates, drone.homePosition)) return;
+
       const color = drone.status === 'flying' ? '#3FB950' : '#D29922';
       const marker = new AMap.Marker({
         position: drone.coordinates,
@@ -100,21 +107,18 @@ export function AMapContainer() {
 
   // 计算方位角（0-360，正北为0）
   const bearing = (from: [number, number], to: [number, number]) => {
-    const [lng1, lat1] = from;
-    const [lng2, lat2] = to;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const radLat1 = lat1 * Math.PI / 180;
-    const radLat2 = lat2 * Math.PI / 180;
+    const dLng = (to[0] - from[0]) * Math.PI / 180;
+    const radLat1 = from[1] * Math.PI / 180;
+    const radLat2 = to[1] * Math.PI / 180;
     const y = Math.sin(dLng) * Math.cos(radLat2);
     const x = Math.cos(radLat1) * Math.sin(radLat2) - Math.sin(radLat1) * Math.cos(radLat2) * Math.cos(dLng);
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
   };
 
-  // 构建飞行中的 marker HTML（含旋转方向）
   const flightMarkerHTML = (heading: number) =>
     `<div style="font-size:20px;text-align:center;filter:drop-shadow(0 0 6px #FFD700);transform:rotate(${heading}deg);">✈️</div>`;
 
-  // 沿路径飞行动画（destroy-recreate 方式，兼容 AMap 2.0 WebGL）
+  // 沿路径飞行动画（destroy-recreate，兼容 AMap 2.0 WebGL）
   const animateFlight = (
     path: Array<[number, number]>,
     durationMs: number,
@@ -125,7 +129,6 @@ export function AMapContainer() {
     let prevMarker: any = null;
     let polyline: any = null;
 
-    // 创建轨迹线
     polyline = new (window as any).AMap.Polyline({
       path,
       strokeColor: '#FFD700',
@@ -141,7 +144,6 @@ export function AMapContainer() {
       const t = Math.min(elapsed / durationMs, 1);
       const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-      // 在路径上插值位置
       const segCount = path.length - 1;
       const totalT = eased * segCount;
       const segIdx = Math.min(Math.floor(totalT), segCount - 1);
@@ -164,7 +166,6 @@ export function AMapContainer() {
         prevMarker.setMap(amap);
         setTimeout(tick, frameInterval);
       } else {
-        // 最后一帧在终点
         prevMarker = new (window as any).AMap.Marker({
           position: path[path.length - 1],
           content: flightMarkerHTML(bearing(path[path.length - 2], path[path.length - 1])),
@@ -173,7 +174,6 @@ export function AMapContainer() {
         });
         prevMarker.setMap(amap);
 
-        // 短暂停留后清理
         setTimeout(() => {
           if (prevMarker) prevMarker.setMap(null);
           if (polyline) polyline.setMap(null);
@@ -184,19 +184,18 @@ export function AMapContainer() {
     };
     tick();
 
-    // 返回清理函数
     return () => {
       if (polyline) polyline.setMap(null);
     };
   };
 
-  // 调度动画：监听 dispatching → outward，arrived → return
+  // 调度动画：dispatching → 飞向事件，arrived → 返回所属机舱
   const animatingRef = useRef<Map<string, () => void>>(new Map());
 
   useEffect(() => {
     if (!amap) return;
 
-    // 出发：status='dispatching' 且有 droneId
+    // 出发
     const dispatchingEvents = events.filter((e) => e.status === 'dispatching' && e.droneId);
     dispatchingEvents.forEach((evt) => {
       if (animatingRef.current.has(`out_${evt.id}`)) return;
@@ -207,26 +206,24 @@ export function AMapContainer() {
       const cancel = animateFlight(
         [drone.coordinates, evt.coordinates],
         8000,
-        () => {
-          animatingRef.current.delete(`out_${evt.id}`);
-        },
+        () => animatingRef.current.delete(`out_${evt.id}`),
       );
       animatingRef.current.set(`out_${evt.id}`, cancel);
     });
 
-    // 返航：status='arrived' 且有 droneId，且 outward 已完成
+    // 返航：回到无人机自己的机舱位置
     const arrivedEvents = events.filter((e) => e.status === 'arrived' && e.droneId);
     arrivedEvents.forEach((evt) => {
       if (animatingRef.current.has(`back_${evt.id}`)) return;
-      // 确保 outward 已完成
       if (animatingRef.current.has(`out_${evt.id}`)) return;
 
+      const drone = drones.find((d) => d.id === evt.droneId);
+      if (!drone) return;
+
       const cancel = animateFlight(
-        [evt.coordinates, HANGAR_COORDS],
+        [evt.coordinates, drone.homePosition],
         8000,
-        () => {
-          animatingRef.current.delete(`back_${evt.id}`);
-        },
+        () => animatingRef.current.delete(`back_${evt.id}`),
       );
       animatingRef.current.set(`back_${evt.id}`, cancel);
     });

@@ -31,13 +31,13 @@ export const useDroneStore = create<DroneStore>((set) => ({
     const mockDrones: Drone[] = [
       {
         id: 'DJI-001', name: 'DJI-001', status: 'flying',
-        coordinates: [106.555, 29.565], heading: 45,
-        battery: 78, task: '巡逻中: G50南段', speed: 60,
+        coordinates: [106.555, 29.565], homePosition: [106.545, 29.550],
+        heading: 45, battery: 78, task: '巡逻中: G50南段', speed: 60,
       },
       {
         id: 'DJI-002', name: 'DJI-002', status: 'standby',
-        coordinates: [106.545, 29.550], heading: 0,
-        battery: 100, task: '待命', speed: 0,
+        coordinates: [106.547, 29.553], homePosition: [106.547, 29.553],
+        heading: 0, battery: 100, task: '待命', speed: 0,
       },
     ];
     set({ drones: mockDrones });
