@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Spin, Alert } from 'antd';
+import { Spin, Alert, FloatButton } from 'antd';
+import { ZoomInOutlined, ZoomOutOutlined, AimOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { useAMap } from '../../hooks/useAMap';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
@@ -249,6 +250,15 @@ export function AMapContainer() {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Spin description="地图加载中..." />
         </div>
+      )}
+      {loaded && (
+        <FloatButton.Group shape="circle" style={{ position: 'absolute', right: 12, top: 60, zIndex: 100 }}>
+          <FloatButton icon={<ZoomInOutlined />} tooltip="放大" onClick={() => amap?.zoomIn()} />
+          <FloatButton icon={<ZoomOutOutlined />} tooltip="缩小" onClick={() => amap?.zoomOut()} />
+          <FloatButton icon={<AimOutlined />} tooltip="回到中心" onClick={() => amap?.setCenter(CENTER)} />
+          <FloatButton icon={<FullscreenOutlined />} tooltip="全屏"
+            onClick={() => document.getElementById('amap-container')?.requestFullscreen?.()} />
+        </FloatButton.Group>
       )}
       {loaded && <MapLegend />}
       {loaded && !keyWarningDismissed && (

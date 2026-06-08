@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Segmented, Typography, Button, Badge, Space } from 'antd';
 import { MessageOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useEventStore } from '../../stores/eventStore';
@@ -17,6 +18,7 @@ const FILTER_OPTIONS: { label: string; value: EventLevel | 'all' }[] = [
 ];
 
 function EventRow({ event }: { event: HighwayEvent }) {
+  const navigate = useNavigate();
   const updateEvent = useEventStore((s) => s.updateEvent);
   const drones = useDroneStore((s) => s.drones);
   const setTask = useDroneStore((s) => s.setTask);
@@ -56,14 +58,16 @@ function EventRow({ event }: { event: HighwayEvent }) {
       borderLeft: `4px solid ${cfg.color}`,
       borderRight: '1px solid #30363D',
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-    }}>
+      cursor: 'pointer',
+    }} onClick={() => navigate(`/event/${event.id}`)}>
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           <LevelBadge level={event.level} />
           <Typography.Text strong style={{ color: '#E6EDF3', fontSize: 13 }}>
             {EVENT_TYPE_LABELS[event.type]}
           </Typography.Text>
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: '#8B949E' }}>{event.confidence}%</span>
+          <Typography.Link style={{ marginLeft: 'auto', fontSize: 11 }} onClick={(e) => { e.stopPropagation(); navigate(`/event/${event.id}`); }}>详情</Typography.Link>
+          <span style={{ fontSize: 11, color: '#8B949E' }}>{event.confidence}%</span>
         </div>
         <Typography.Text type="secondary" style={{ fontSize: 11 }}>
           {event.roadName} {event.stakeNumber} {event.direction}

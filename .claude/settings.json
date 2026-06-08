@@ -21,7 +21,9 @@
       "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' text *)",
       "Bash(git commit -m 'fix: push all coordinates 3-9km inland from rivers with API verification *)",
       "Bash(git commit -m 'docs: rewrite PRD with AI as central narrative \\(v2.0\\) *)",
-      "Bash(git commit -m 'feat: redesign main layout to match PRD wireframe spec *)"
+      "Bash(git commit -m 'feat: redesign main layout to match PRD wireframe spec *)",
+      "Bash(git commit -m 'docs: add UI optimization and new pages plan *)",
+      "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' url *)"
     ]
   }
 }
