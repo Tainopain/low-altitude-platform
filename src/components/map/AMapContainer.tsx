@@ -69,6 +69,16 @@ export function AMapContainer() {
     });
     patrolLine.setMap(amap);
     markersRef.current.set('g50_patrol', patrolLine);
+
+    // 点击地图空白区域关闭 InfoWindow
+    const closeInfo = () => {
+      if (infoWindowRef.current) {
+        infoWindowRef.current.close();
+        infoWindowRef.current = null;
+      }
+    };
+    amap.on('click', closeInfo);
+    return () => { amap.off('click', closeInfo); };
   }, [amap]);
 
   // 初始化机舱 Markers（每架无人机对应一个机舱，一对一）
@@ -127,12 +137,16 @@ export function AMapContainer() {
       });
       const timeStr = new Date(evt.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       marker.on('click', () => {
-        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:160px">
+        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:170px">
           <b style="color:${color}">${levelLabel} · ${evt.type}</b><br/>
           路段: ${evt.roadName} ${evt.stakeNumber}<br/>
           置信度: ${evt.confidence}%<br/>
           来源: ${evt.source === 'camera' ? '📷' : '✈️'} ${evt.sourceDetail}<br/>
-          时间: ${timeStr}
+          时间: ${timeStr}<br/>
+          <a href="/event/${evt.id}" style="color:#58A6FF;text-decoration:none;font-weight:500;"
+             onclick="event.preventDefault();window.history.pushState(null,'','/event/${evt.id}');window.dispatchEvent(new PopStateEvent('popstate'));">
+            查看详情 →
+          </a>
         </div>`;
         showInfo(AMap, evt.coordinates, content);
       });
@@ -207,6 +221,7 @@ export function AMapContainer() {
     path: Array<[number, number]>,
     durationMs: number,
     onDone: () => void,
+    color: string = '#FFD700',
   ) => {
     const frameInterval = 50;
     const startTime = Date.now();
@@ -215,7 +230,7 @@ export function AMapContainer() {
 
     polyline = new (window as any).AMap.Polyline({
       path,
-      strokeColor: '#FFD700',
+      strokeColor: color,
       strokeWeight: 3,
       strokeOpacity: 0.7,
       strokeStyle: 'dashed',
@@ -308,6 +323,7 @@ export function AMapContainer() {
         [evt.coordinates, drone.homePosition],
         8000,
         () => animatingRef.current.delete(`back_${evt.id}`),
+        '#58A6FF',
       );
       animatingRef.current.set(`back_${evt.id}`, cancel);
     });

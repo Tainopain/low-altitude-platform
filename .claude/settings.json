@@ -56,7 +56,9 @@
       "Bash(git commit -m 'fix: notification static → App.useApp + WebSocket auth guard + message→title *)",
       "Bash(git commit -m 'feat: add data reset button to Settings page *)",
       "Bash(git commit -m 'feat: add server data reset endpoint + Settings integration *)",
-      "Bash(git commit -m 'feat: click map markers to show InfoWindow with details *)"
+      "Bash(git commit -m 'feat: click map markers to show InfoWindow with details *)",
+      "Bash(npx vite *)",
+      "Bash(git commit -m 'feat: improve map UX — InfoWindow detail link, close on map click, return route color *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"
