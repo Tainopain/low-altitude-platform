@@ -7,7 +7,8 @@
       "Bash(git commit -m 'fix: implement working drone dispatch animation with destroy-recreate approach *)",
       "Bash(git commit -m 'feat: implement round-trip drone dispatch animation with heading *)",
       "Bash(git commit -m 'feat: enforce 1:1 drone-to-hangar relationship *)",
-      "Bash(git commit -m 'feat: expand mock data with more events and drones *)"
+      "Bash(git commit -m 'feat: expand mock data with more events and drones *)",
+      "Bash(git commit -m 'fix: redistribute events and hangars from linear to area scatter *)"
     ]
   }
 }
