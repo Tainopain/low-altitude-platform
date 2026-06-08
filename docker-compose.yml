@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-lowalt-mvp-secret}
+      - LLM_API_URL=${LLM_API_URL:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-deepseek-chat}
+      - AI_INTERVAL=${AI_INTERVAL:-30000}
+    volumes:
+      - server_data:/app/server/data
+    restart: unless-stopped
+
+volumes:
+  server_data:
