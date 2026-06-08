@@ -13,3 +13,11 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; }
   0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.4); }
   50% { box-shadow: 0 0 0 4px rgba(248, 81, 73, 0); }
 }
+
+@keyframes new-event-flash {
+  0% { background-color: rgba(88, 166, 255, 0.3); }
+  100% { background-color: transparent; }
+}
+.new-event-flash {
+  animation: new-event-flash 1.5s ease-out;
+}

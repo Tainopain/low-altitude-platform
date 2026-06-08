@@ -6,6 +6,7 @@ import { KPICards } from '../components/dashboard/KPICards';
 import { DroneStatusPanel } from '../components/dashboard/DroneStatusPanel';
 import { EventStream } from '../components/dashboard/EventStream';
 import { AMapContainer } from '../components/map/AMapContainer';
+import { DashboardSkeleton } from '../components/shared/LoadingSkeleton';
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -20,6 +21,8 @@ export function DashboardPage() {
   const loadEvents = useEventStore((s) => s.loadEvents);
   const loadDrones = useDroneStore((s) => s.loadDrones);
   const events = useEventStore((s) => s.events);
+  const eventLoading = useEventStore((s) => s.loading);
+  const droneLoading = useDroneStore((s) => s.loading);
 
   const [kpiCollapsed, setKpiCollapsed] = useState(false);
   const [dronePanelCollapsed, setDronePanelCollapsed] = useState(false);
@@ -29,6 +32,11 @@ export function DashboardPage() {
 
   // WebSocket 实时推送
   useWebSocket();
+
+  // 加载中
+  if (eventLoading || droneLoading) {
+    return <DashboardSkeleton />;
+  }
 
   // 高危事件 Toast 通知（监听新事件）
   const prevHighCount = useRef(events.filter((e) => e.level === 'high').length);
@@ -78,11 +86,18 @@ export function DashboardPage() {
     <>
       {/* 中间: KPI(左) + 地图(中) + 无人机(右) */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        {/* KPI 面板（可折叠） */}
-        {!kpiCollapsed && <KPICards />}
+        {/* KPI 面板（可折叠 + 过渡动画） */}
+        <div style={{
+          width: kpiCollapsed ? 0 : 170,
+          overflow: 'hidden',
+          transition: 'width 0.25s ease',
+          flexShrink: 0,
+        }}>
+          <KPICards />
+        </div>
 
         {/* 地图区 + 左右折叠按钮 */}
-        <div style={{ flex: 1, position: 'relative', background: '#0D1117' }}>
+        <div style={{ flex: 1, position: 'relative', background: '#0D1117', transition: 'all 0.25s ease' }}>
           {/* 左折叠按钮 */}
           <Button
             type="text" size="small"
@@ -106,8 +121,15 @@ export function DashboardPage() {
           <AMapContainer />
         </div>
 
-        {/* 无人机面板（可折叠） */}
-        {!dronePanelCollapsed && <DroneStatusPanel />}
+        {/* 无人机面板（可折叠 + 过渡动画） */}
+        <div style={{
+          width: dronePanelCollapsed ? 0 : 220,
+          overflow: 'hidden',
+          transition: 'width 0.25s ease',
+          flexShrink: 0,
+        }}>
+          <DroneStatusPanel />
+        </div>
       </div>
 
       {/* 底部: 实时事件流 */}
