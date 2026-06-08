@@ -15,6 +15,21 @@ export function AMapContainer() {
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const markersRef = useRef<Map<string, any>>(new Map());
+  const infoWindowRef = useRef<any>(null);
+
+  // 显示信息窗
+  const showInfo = (AMap: any, pos: [number, number], content: string) => {
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close();
+    }
+    const iw = new AMap.InfoWindow({
+      content,
+      position: pos,
+      offset: new AMap.Pixel(0, -20),
+    });
+    iw.open(amap);
+    infoWindowRef.current = iw;
+  };
 
   // G50 高速公路 + 巡逻路线
   const G50_ROUTE: Array<[number, number]> = [
@@ -77,6 +92,16 @@ export function AMapContainer() {
         content: '<div style="font-size:20px;text-align:center;">🏠</div>',
         offset: new AMap.Pixel(-12, -12),
       });
+      const owner = drones.filter((d) => d.homePosition[0] === drone.homePosition[0] && d.homePosition[1] === drone.homePosition[1]);
+      marker.on('click', () => {
+        const droneList = owner.map((d) => `${d.name} (${d.status === 'flying' ? '在空' : d.status === 'standby' ? '待命' : '充电中'})`).join('<br/>');
+        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:140px">
+          <b>🏠 机舱</b><br/>
+          ${droneList}<br/>
+          位置: ${drone.homePosition[1].toFixed(4)}, ${drone.homePosition[0].toFixed(4)}
+        </div>`;
+        showInfo(AMap, drone.homePosition, content);
+      });
       marker.setMap(amap);
       markersRef.current.set(`hangar_${drone.id}`, marker);
     });
@@ -93,14 +118,23 @@ export function AMapContainer() {
     // 已关闭/已处理的事件不在地图上显示
     events.filter((e) => e.status !== 'closed' && e.status !== 'resolved').forEach((evt) => {
       const color = evt.level === 'high' ? '#F85149' : evt.level === 'medium' ? '#D29922' : '#79C0FF';
+      const levelLabel = evt.level === 'high' ? '高危' : evt.level === 'medium' ? '中危' : '低危';
       const pulseClass = evt.level === 'high' ? 'marker-pulse' : '';
       const marker = new AMap.Marker({
         position: evt.coordinates,
         content: `<div class="${pulseClass}" style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid ${color}44;"></div>`,
         offset: new AMap.Pixel(-7, -7),
       });
+      const timeStr = new Date(evt.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       marker.on('click', () => {
-        console.log('Event clicked:', evt.id);
+        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:160px">
+          <b style="color:${color}">${levelLabel} · ${evt.type}</b><br/>
+          路段: ${evt.roadName} ${evt.stakeNumber}<br/>
+          置信度: ${evt.confidence}%<br/>
+          来源: ${evt.source === 'camera' ? '📷' : '✈️'} ${evt.sourceDetail}<br/>
+          时间: ${timeStr}
+        </div>`;
+        showInfo(AMap, evt.coordinates, content);
       });
       marker.setMap(amap);
       markersRef.current.set(`evt_${evt.id}`, marker);
@@ -139,7 +173,16 @@ export function AMapContainer() {
         offset: new AMap.Pixel(-10, -10),
       });
       marker.on('click', () => {
-        console.log('Drone clicked:', drone.id);
+        const statusLabel = drone.status === 'flying' ? '在空' : drone.status === 'standby' ? '待命' : drone.status === 'charging' ? '充电中' : '维护';
+        const batteryColor = drone.battery > 50 ? '#3FB950' : drone.battery > 20 ? '#D29922' : '#F85149';
+        const content = `<div style="padding:4px 8px;font-size:12px;line-height:1.8;min-width:160px">
+          <b>${drone.name}</b> <span style="color:${drone.status === 'flying' ? '#3FB950' : '#D29922'}">${statusLabel}</span><br/>
+          电量: <span style="color:${batteryColor}">${drone.battery}%</span><br/>
+          任务: ${drone.task}<br/>
+          速度: ${drone.speed > 0 ? drone.speed + ' km/h' : '停泊'}<br/>
+          位置: ${drone.coordinates[1].toFixed(4)}, ${drone.coordinates[0].toFixed(4)}
+        </div>`;
+        showInfo(AMap, drone.coordinates, content);
       });
       marker.setMap(amap);
       markersRef.current.set(`drone_${drone.id}`, marker);
