@@ -32,6 +32,11 @@ export const useDroneStore = create<DroneStore>((set, get) => ({
 
   loadDrones: async () => {
     set({ loading: true });
+    const stored = localStorage.getItem('token');
+    if (stored) {
+      const { setToken } = await import('../api/client');
+      setToken(stored);
+    }
     try {
       const data = await api.getDrones();
       const drones: Drone[] = data.map((d: any) => ({

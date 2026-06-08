@@ -1,31 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Form, Input, Button, Radio, Typography, message } from 'antd';
+import { Card, Form, Input, Button, Radio, Typography, App } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useUIStore } from '../stores/uiStore';
+import { setToken } from '../api/client';
 
-/**
- * 登录页
- * MVP: 用户名+密码 + 角色选择，登录成功后存 JWT + 跳转 /
- */
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'operator' | 'admin'>('operator');
   const navigate = useNavigate();
   const theme = useUIStore((s) => s.theme);
+  const { message } = App.useApp();
 
-  // 已登录则跳转到首页
-  if (localStorage.getItem('token')) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  // 已登录则跳转到首页 (useEffect 避免 hooks 顺序变化)
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async (values: { username: string; password: string }) => {
     setLoading(true);
     // MVP: mock 登录，实际应调用 API
     await new Promise((r) => setTimeout(r, 800));
     const mockToken = `mock_jwt_${values.username}_${role}_${Date.now()}`;
-    localStorage.setItem('token', mockToken);
+    setToken(mockToken);
     localStorage.setItem('role', role);
     localStorage.setItem('username', values.username);
     message.success(`欢迎，${values.username}（${role === 'admin' ? '管理员' : '值班员'}）`);

@@ -54,6 +54,10 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
   loadEvents: async () => {
     set({ loading: true, error: null });
+    // Ensure token is synced from localStorage before API call
+    const { setToken } = await import('../api/client');
+    const stored = localStorage.getItem('token');
+    if (stored) setToken(stored);
     try {
       const data = await api.getEvents();
       const events: HighwayEvent[] = data.map((e: any) => ({

@@ -33,12 +33,7 @@ export function DashboardPage() {
   // WebSocket 实时推送
   useWebSocket();
 
-  // 加载中
-  if (eventLoading || droneLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  // 高危事件 Toast 通知（监听新事件）
+  // 高危事件 Toast（监听新事件）— 必须在条件返回之前调用
   const prevHighCount = useRef(events.filter((e) => e.level === 'high').length);
   useEffect(() => {
     const currentHigh = events.filter((e) => e.level === 'high');
@@ -59,7 +54,7 @@ export function DashboardPage() {
     prevHighCount.current = currentHigh.length;
   }, [events.length]);
 
-  // 键盘快捷键
+  // 键盘快捷键 — 必须在条件返回之前调用
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       // 关闭所有面板
@@ -81,6 +76,11 @@ export function DashboardPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  // 加载中 — 必须在所有 hooks 之后才能条件返回
+  if (eventLoading || droneLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <>
