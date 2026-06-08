@@ -52,7 +52,8 @@
       "Bash('C:\\\\Users\\\\81247/.claude/skills/gstack/browse/dist/browse' fill *)",
       "Bash(git commit -m 'fix: login hooks order + 401 token sync + notification deprecation *)",
       "Bash(git commit -m 'chore: remove key warning alert banner from map *)",
-      "Bash(git commit -m 'fix: hide closed/resolved events from map markers *)"
+      "Bash(git commit -m 'fix: hide closed/resolved events from map markers *)",
+      "Bash(git commit -m 'fix: notification static → App.useApp + WebSocket auth guard + message→title *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\81247\\.claude\\projects\\c--Users-81247-low-altitude-platform"

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, notification } from 'antd';
+import { Button, App } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { KPICards } from '../components/dashboard/KPICards';
 import { DroneStatusPanel } from '../components/dashboard/DroneStatusPanel';
@@ -18,6 +18,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
  */
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { notification } = App.useApp();
   const loadEvents = useEventStore((s) => s.loadEvents);
   const loadDrones = useDroneStore((s) => s.loadDrones);
   const events = useEventStore((s) => s.events);
@@ -40,7 +41,7 @@ export function DashboardPage() {
     if (currentHigh.length > prevHighCount.current && prevHighCount.current > 0) {
       const latest = currentHigh[0];
       notification.warning({
-        message: `🔴 新高危事件`,
+        title: `🔴 新高危事件`,
         description: `${latest.roadName} ${latest.stakeNumber} ${latest.direction} · ${latest.sourceDetail}`,
         placement: 'topRight',
         duration: 5,

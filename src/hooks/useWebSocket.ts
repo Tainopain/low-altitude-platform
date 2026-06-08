@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
-import { getToken } from '../api/client';
-import { notification } from 'antd';
 import type { HighwayEvent } from '../types/event';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
@@ -12,9 +10,13 @@ export function useWebSocket() {
   const applyServerUpdate = useEventStore((s) => s.applyServerUpdate);
   const updateGPS = useDroneStore((s) => s.updateGPS);
   const connectedRef = useRef(false);
+  const retryRef = useRef(0);
 
   useEffect(() => {
     if (connectedRef.current) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     let ws: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout>;
 
@@ -23,16 +25,13 @@ export function useWebSocket() {
       try {
         ws = new WebSocket(WS_URL);
       } catch {
-        reconnectTimer = setTimeout(connect, 5000);
+        scheduleReconnect();
         return;
       }
 
       ws.onopen = () => {
         connectedRef.current = true;
-        console.log('[WS] connected');
-        // Auth
-        const token = getToken();
-        if (token) ws!.send(JSON.stringify({ type: 'auth', token }));
+        retryRef.current = 0;
       };
 
       ws.onmessage = (event) => {
@@ -41,14 +40,6 @@ export function useWebSocket() {
           switch (msg.type) {
             case 'event:new':
               addEvent(msg.payload as HighwayEvent);
-              if (msg.payload.level === 'high') {
-                notification.warning({
-                  message: `🔴 新高危事件: ${msg.payload.roadName} ${msg.payload.stakeNumber}`,
-                  description: msg.payload.sourceDetail,
-                  placement: 'topRight',
-                  duration: 5,
-                });
-              }
               break;
             case 'event:update':
               applyServerUpdate(msg.payload.id, msg.payload);
@@ -57,17 +48,23 @@ export function useWebSocket() {
               updateGPS(msg.payload.id, msg.payload.coordinates, msg.payload.heading);
               break;
           }
-        } catch { /* ignore parse errors */ }
+        } catch { /* ignore */ }
       };
 
       ws.onclose = () => {
         connectedRef.current = false;
-        reconnectTimer = setTimeout(connect, 3000);
+        scheduleReconnect();
       };
 
       ws.onerror = () => {
         ws?.close();
       };
+    };
+
+    const scheduleReconnect = () => {
+      const delay = Math.min(3000 * (retryRef.current + 1), 15000);
+      retryRef.current += 1;
+      reconnectTimer = setTimeout(connect, delay);
     };
 
     connect();
