@@ -31,22 +31,22 @@ export const useDroneStore = create<DroneStore>((set) => ({
     const mockDrones: Drone[] = [
       {
         id: 'DJI-001', name: 'DJI-001', status: 'flying',
-        coordinates: [106.578, 29.560], homePosition: [106.580, 29.562],  // 渝中 解放碑
+        coordinates: [106.500, 29.505], homePosition: [106.500, 29.505],  // 九龙坡 毛线沟
         heading: 45, battery: 78, task: '巡逻中: G50南段', speed: 60,
       },
       {
         id: 'DJI-002', name: 'DJI-002', status: 'standby',
-        coordinates: [106.535, 29.590], homePosition: [106.535, 29.590],  // 江北 观音桥西
+        coordinates: [106.535, 29.592], homePosition: [106.535, 29.592],  // 江北 冉家坝
         heading: 0, battery: 100, task: '待命', speed: 0,
       },
       {
         id: 'DJI-003', name: 'DJI-003', status: 'standby',
-        coordinates: [106.520, 29.502], homePosition: [106.520, 29.502],  // 九龙坡 杨家坪
+        coordinates: [106.570, 29.505], homePosition: [106.570, 29.505],  // 南岸 四公里
         heading: 0, battery: 95, task: '待命', speed: 0,
       },
       {
         id: 'DJI-004', name: 'DJI-004', status: 'charging',
-        coordinates: [106.555, 29.595], homePosition: [106.555, 29.595],  // 江北 龙头寺
+        coordinates: [106.555, 29.598], homePosition: [106.555, 29.598],  // 江北 唐家院子
         heading: 0, battery: 35, task: '充电中', speed: 0,
       },
     ];
