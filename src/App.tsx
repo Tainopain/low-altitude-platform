@@ -5,8 +5,9 @@ import { useEventStore } from './stores/eventStore';
 import { useDroneStore } from './stores/droneStore';
 import { darkTheme, lightTheme } from './theme';
 import { AppHeader } from './components/layout/AppHeader';
-import { AppFooter } from './components/layout/AppFooter';
-import { EventSider } from './components/layout/EventSider';
+import { KPICards } from './components/dashboard/KPICards';
+import { DroneStatusPanel } from './components/dashboard/DroneStatusPanel';
+import { EventStream } from './components/dashboard/EventStream';
 import { AMapContainer } from './components/map/AMapContainer';
 import { AIDrawer } from './components/ai/AIDrawer';
 import { HistoryDrawer } from './components/history/HistoryDrawer';
@@ -28,15 +29,24 @@ function App() {
     >
       <AntApp>
         <Layout style={{ height: '100vh' }}>
+          {/* 顶栏: AI 守护 X 天 | 今日事件 N | 待处理 M | 无人机 | 摄像头 | 路段 | 时间 */}
           <AppHeader />
-          <Layout style={{ flex: 1 }}>
-            <Layout.Content style={{ position: 'relative', background: '#0D1117' }}>
+
+          {/* 中间: KPI(左) + 地图(中) + 无人机状态(右) */}
+          <Layout.Content style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+            <KPICards />
+            <div style={{ flex: 1, position: 'relative', background: '#0D1117' }}>
               <AMapContainer />
-            </Layout.Content>
-            <EventSider />
-          </Layout>
-          <AppFooter />
+            </div>
+            <DroneStatusPanel />
+          </Layout.Content>
+
+          {/* 底部: 实时事件流（横向滚动） */}
+          <div style={{ height: 168, borderTop: '1px solid #30363D', flexShrink: 0 }}>
+            <EventStream />
+          </div>
         </Layout>
+
         <AIDrawer />
         <HistoryDrawer />
       </AntApp>
