@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Spin, Alert, FloatButton } from 'antd';
+import { useEffect, useRef } from 'react';
+import { Spin, FloatButton } from 'antd';
 import { ZoomInOutlined, ZoomOutOutlined, AimOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { useAMap } from '../../hooks/useAMap';
 import { useEventStore } from '../../stores/eventStore';
@@ -15,7 +15,6 @@ export function AMapContainer() {
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const markersRef = useRef<Map<string, any>>(new Map());
-  const [keyWarningDismissed, setKeyWarningDismissed] = useState(false);
 
   // G50 高速公路 + 巡逻路线
   const G50_ROUTE: Array<[number, number]> = [
@@ -301,20 +300,6 @@ export function AMapContainer() {
         </FloatButton.Group>
       )}
       {loaded && <MapLegend />}
-      {loaded && !keyWarningDismissed && (
-        <div style={{
-          position: 'absolute', top: 12, right: 12, zIndex: 100, maxWidth: 340,
-        }}>
-          <Alert
-            type="warning"
-            title="地图Key未配置"
-            description="如地图未显示，请到 AMap 控制台获取 Key 并将 localhost 加入白名单，填入 .env 文件"
-            closable
-            onClose={() => setKeyWarningDismissed(true)}
-            style={{ fontSize: 12 }}
-          />
-        </div>
-      )}
       <DroneVideoWindow />
     </div>
   );
