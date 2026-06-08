@@ -19,23 +19,25 @@ interface UseAMapOptions {
   zoom: number;
 }
 
-const isReadyRef = { current: false };
-
 export function useAMap({ containerId, center, zoom }: UseAMapOptions) {
   const [amap, setAmap] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef(false);
+  const containerIdRef = useRef(containerId);
 
   useEffect(() => {
-    if (loadingRef.current || isReadyRef.current) return;
+    if (loadingRef.current) return;
     loadingRef.current = true;
+    containerIdRef.current = containerId;
 
     AMapLoader.load({
       key: AMAP_KEY,
       version: AMAP_VERSION,
     })
       .then((AMap: any) => {
+        if (containerIdRef.current !== containerId) return;
+
         const container = document.getElementById(containerId);
         if (!container) {
           setError('地图容器不存在');
@@ -53,9 +55,9 @@ export function useAMap({ containerId, center, zoom }: UseAMapOptions) {
           });
 
           map.on('complete', () => {
+            if (containerIdRef.current !== containerId) return;
             setAmap(map);
             setLoaded(true);
-            isReadyRef.current = true;
           });
         } catch (e: any) {
           setError(`地图初始化失败: ${e.message || e}`);
@@ -72,7 +74,8 @@ export function useAMap({ containerId, center, zoom }: UseAMapOptions) {
         }
         loadingRef.current = false;
       });
-  }, [containerId, center, zoom]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { amap, loaded, error };
 }

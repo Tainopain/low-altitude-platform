@@ -151,7 +151,7 @@ export function AMapContainer() {
         }}>
           <Alert
             type="warning"
-            message="地图Key未配置"
+            title="地图Key未配置"
             description="如地图未显示，请到 AMap 控制台获取 Key 并将 localhost 加入白名单，填入 .env 文件"
             closable
             onClose={() => setKeyWarningDismissed(true)}
