@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Spin } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { Spin, Alert } from 'antd';
 import { useAMap } from '../../hooks/useAMap';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
@@ -16,6 +16,7 @@ export function AMapContainer() {
   const drones = useDroneStore((s) => s.drones);
   const markersRef = useRef<Map<string, any>>(new Map());
   const prevDispatchingRef = useRef<Set<string>>(new Set());
+  const [keyWarningDismissed, setKeyWarningDismissed] = useState(false);
 
   // 初始化固定 Marker（机巢）
   useEffect(() => {
@@ -122,7 +123,18 @@ export function AMapContainer() {
     prevDispatchingRef.current = currentIds;
   }, [events, drones, amap]);
 
-  if (error) return <div style={{ color: '#F85149', padding: 24 }}>地图加载失败: {error}</div>;
+  if (error) return (
+    <div style={{
+      height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#0D1117', color: '#F85149', padding: 24,
+    }}>
+      <div style={{ textAlign: 'center', maxWidth: 480 }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🗺️</div>
+        <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>地图加载失败</div>
+        <div style={{ color: '#8B949E', fontSize: 13, lineHeight: 1.8 }}>{error}</div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ height: '100%', position: 'relative' }}>
@@ -133,6 +145,20 @@ export function AMapContainer() {
         </div>
       )}
       {loaded && <MapLegend />}
+      {loaded && !keyWarningDismissed && (
+        <div style={{
+          position: 'absolute', top: 12, right: 12, zIndex: 100, maxWidth: 340,
+        }}>
+          <Alert
+            type="warning"
+            message="地图Key未配置"
+            description="如地图未显示，请到 AMap 控制台获取 Key 并将 localhost 加入白名单，填入 .env 文件"
+            closable
+            onClose={() => setKeyWarningDismissed(true)}
+            style={{ fontSize: 12 }}
+          />
+        </div>
+      )}
       <DroneVideoWindow />
     </div>
   );
