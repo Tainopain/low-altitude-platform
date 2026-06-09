@@ -87,5 +87,5 @@ export type ThemeColors = typeof THEME_COLORS.dark;
 /** Hook: 根据当前主题返回对应的内联样式颜色 */
 export function useThemeColors(): ThemeColors {
   const theme = useUIStore((s) => s.theme);
-  return THEME_COLORS[theme];
+  return THEME_COLORS[theme] as ThemeColors;
 }

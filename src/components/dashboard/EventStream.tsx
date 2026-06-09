@@ -107,7 +107,6 @@ function EventRow({ event }: { event: HighwayEvent }) {
 
 /** 紧凑模式：单行，高度 36px */
 function CompactRow({ event }: { event: HighwayEvent }) {
-  const navigate = useNavigate();
   const updateEvent = useEventStore((s) => s.updateEvent);
   const t = useThemeColors();
   const cfg = EVENT_LEVEL_CONFIG[event.level];

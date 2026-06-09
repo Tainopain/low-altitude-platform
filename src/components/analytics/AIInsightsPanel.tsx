@@ -21,12 +21,6 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   risk: <SafetyOutlined style={{ color: '#3FB950' }} />,
 };
 
-const SEVERITY_COLOR: Record<string, string> = {
-  high: '#F85149',
-  medium: '#D29922',
-  low: '#3FB950',
-};
-
 export function AIInsightsPanel() {
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [loading, setLoading] = useState(true);
