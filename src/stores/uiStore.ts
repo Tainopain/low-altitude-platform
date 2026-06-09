@@ -6,12 +6,14 @@ interface UIStore {
   aiDrawerOpen: boolean;
   historyDrawerOpen: boolean;
   videoWindow: { droneId: string | null; visible: boolean };
+  wsConnected: boolean;
   toggleTheme: () => void;
   toggleSider: () => void;
   setAIDrawer: (open: boolean) => void;
   setHistoryDrawer: (open: boolean) => void;
   showVideoWindow: (droneId: string) => void;
   hideVideoWindow: () => void;
+  setWsConnected: (connected: boolean) => void;
 }
 
 export const useUIStore = create<UIStore>((set) => ({
@@ -20,6 +22,7 @@ export const useUIStore = create<UIStore>((set) => ({
   aiDrawerOpen: false,
   historyDrawerOpen: false,
   videoWindow: { droneId: null, visible: false },
+  wsConnected: false,
 
   toggleTheme: () =>
     set((s) => {
@@ -35,4 +38,5 @@ export const useUIStore = create<UIStore>((set) => ({
 
   showVideoWindow: (droneId) => set({ videoWindow: { droneId, visible: true } }),
   hideVideoWindow: () => set({ videoWindow: { droneId: null, visible: false } }),
+  setWsConnected: (connected) => set({ wsConnected: connected }),
 }));

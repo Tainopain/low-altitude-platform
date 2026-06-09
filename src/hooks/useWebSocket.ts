@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
+import { useUIStore } from '../stores/uiStore';
 import type { HighwayEvent } from '../types/event';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
@@ -9,6 +10,7 @@ export function useWebSocket() {
   const addEvent = useEventStore((s) => s.addEvent);
   const applyServerUpdate = useEventStore((s) => s.applyServerUpdate);
   const updateGPS = useDroneStore((s) => s.updateGPS);
+  const setWsConnected = useUIStore((s) => s.setWsConnected);
   const connectedRef = useRef(false);
   const retryRef = useRef(0);
 
@@ -32,6 +34,7 @@ export function useWebSocket() {
       ws.onopen = () => {
         connectedRef.current = true;
         retryRef.current = 0;
+        setWsConnected(true);
       };
 
       ws.onmessage = (event) => {
@@ -53,6 +56,7 @@ export function useWebSocket() {
 
       ws.onclose = () => {
         connectedRef.current = false;
+        setWsConnected(false);
         scheduleReconnect();
       };
 

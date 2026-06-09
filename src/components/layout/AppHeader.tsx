@@ -14,7 +14,7 @@ import { useThemeColors } from '../../theme';
 export function AppHeader() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useUIStore();
+  const { theme, toggleTheme, wsConnected } = useUIStore();
   const t = useThemeColors();
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
@@ -68,7 +68,16 @@ export function AppHeader() {
           style={{ color: isActive('/settings') ? '#58A6FF' : undefined }}
         />
 
-        <span style={{ color: t.muted, fontSize: 12, margin: '0 8px' }}>
+        <span
+          title={wsConnected ? 'WebSocket 已连接' : 'WebSocket 断开'}
+          style={{
+            display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+            background: wsConnected ? '#3FB950' : '#F85149',
+            boxShadow: `0 0 4px ${wsConnected ? '#3FB950' : '#F85149'}`,
+            marginRight: 4, transition: 'background 0.3s',
+          }}
+        />
+        <span style={{ color: t.muted, fontSize: 12, marginRight: 8 }}>
           {time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
         </span>
         <Button type="text" size="small" icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />} onClick={toggleTheme} />

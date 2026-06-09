@@ -20,6 +20,7 @@ export function AMapContainer() {
   const t = useThemeColors();
   const markersRef = useRef<Map<string, any>>(new Map());
   const infoWindowRef = useRef<any>(null);
+  const trailPositionsRef = useRef<Map<string, Array<[number, number]>>>(new Map());
 
   // 主题化包裹 InfoWindow 内容（带 CSS 三角箭头）
   const wrapContent = (inner: string) =>
@@ -207,6 +208,59 @@ export function AMapContainer() {
       markersRef.current.set(`drone_${drone.id}`, marker);
     });
   }, [amap, drones, events, theme]);
+
+  // 巡逻轨迹尾迹
+  useEffect(() => {
+    if (!amap) return;
+    const AMap = (window as any).AMap;
+    if (!AMap) return;
+
+    const trailLen = 25;
+    const trails = trailPositionsRef.current;
+
+    drones.forEach((drone) => {
+      if (drone.status !== 'flying') {
+        // 非飞行状态：清除尾迹
+        const key = `trail_${drone.id}`;
+        const old = markersRef.current.get(key);
+        if (old) { old.setMap(null); markersRef.current.delete(key); }
+        trails.delete(drone.id);
+        return;
+      }
+
+      // 正在调度中的无人机不显示尾迹（由飞行动画处理）
+      const dispatching = events.some((e) =>
+        (e.status === 'dispatching' || e.status === 'arrived') && e.droneId === drone.id
+      );
+      if (dispatching) return;
+
+      // 追加新位置（去重相邻同点）
+      let posList = trails.get(drone.id) || [];
+      const last = posList[posList.length - 1];
+      if (!last || last[0] !== drone.coordinates[0] || last[1] !== drone.coordinates[1]) {
+        posList = [...posList.slice(-(trailLen - 1)), [...drone.coordinates]];
+        trails.set(drone.id, posList);
+      }
+
+      if (posList.length < 2) return;
+
+      const key = `trail_${drone.id}`;
+      const old = markersRef.current.get(key);
+      if (old) old.setMap(null);
+
+      const line = new AMap.Polyline({
+        path: posList,
+        strokeColor: '#3FB950',
+        strokeWeight: 2,
+        strokeOpacity: 0.35,
+        strokeStyle: 'solid',
+        lineCap: 'round',
+        zIndex: 50,
+      });
+      line.setMap(amap);
+      markersRef.current.set(key, line);
+    });
+  }, [amap, drones, events]);
 
   // 计算方位角（0-360，正北为0）
   const bearing = (from: [number, number], to: [number, number]) => {
