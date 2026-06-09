@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createHashRouter, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { AppLayout } from './components/layout/AppLayout';
 // Dashboard is the home page, eager-load for instant render
@@ -36,7 +36,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: '/login',
     element: <LazyPage><LoginPage /></LazyPage>,
