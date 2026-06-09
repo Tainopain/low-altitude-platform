@@ -1,7 +1,9 @@
 import type { ThemeConfig } from 'antd';
+import { useUIStore } from './stores/uiStore';
 
+/** Ant Design ConfigProvider 暗色主题 */
 export const darkTheme: ThemeConfig = {
-  algorithm: undefined, // 后续在 App 中通过 ConfigProvider 传入 darkAlgorithm
+  algorithm: undefined,
   token: {
     colorBgLayout: '#0D1117',
     colorBgContainer: '#161B22',
@@ -31,6 +33,7 @@ export const darkTheme: ThemeConfig = {
   },
 };
 
+/** Ant Design ConfigProvider 亮色主题 */
 export const lightTheme: ThemeConfig = {
   token: {
     colorBgLayout: '#FFFFFF',
@@ -54,3 +57,35 @@ export const lightTheme: ThemeConfig = {
     },
   },
 };
+
+/** 内联样式 / 非 Ant Design 组件的主题色常量 */
+export const THEME_COLORS = {
+  dark: {
+    bg: '#161B22',
+    text: '#E6EDF3',
+    border: '#30363D',
+    link: '#58A6FF',
+    muted: '#8B949E',
+    shadow: 'rgba(0,0,0,0.4)',
+    cardBg: 'rgba(22,27,34,0.85)',
+    highBg: 'rgba(248,81,73,0.08)',
+  },
+  light: {
+    bg: '#FFFFFF',
+    text: '#1F2328',
+    border: '#D0D7DE',
+    link: '#0969DA',
+    muted: '#656D76',
+    shadow: 'rgba(0,0,0,0.12)',
+    cardBg: 'rgba(255,255,255,0.92)',
+    highBg: 'rgba(248,81,73,0.06)',
+  },
+} as const;
+
+export type ThemeColors = typeof THEME_COLORS.dark;
+
+/** Hook: 根据当前主题返回对应的内联样式颜色 */
+export function useThemeColors(): ThemeColors {
+  const theme = useUIStore((s) => s.theme);
+  return THEME_COLORS[theme];
+}

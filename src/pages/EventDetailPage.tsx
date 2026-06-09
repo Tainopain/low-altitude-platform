@@ -4,6 +4,7 @@ import { ArrowLeftOutlined, SendOutlined, CheckOutlined, CloseOutlined } from '@
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
 import { useUIStore } from '../stores/uiStore';
+import { useThemeColors } from '../theme';
 import { LevelBadge } from '../components/shared/LevelBadge';
 import { StatusTag } from '../components/shared/StatusTag';
 import { EVENT_TYPE_LABELS } from '../types/event';
@@ -17,6 +18,7 @@ export default function EventDetailPage() {
   const setTask = useDroneStore((s) => s.setTask);
   const setStatus = useDroneStore((s) => s.setStatus);
   const showVideoWindow = useUIStore((s) => s.showVideoWindow);
+  const t = useThemeColors();
 
   const event = events.find((e) => e.id === id);
 
@@ -76,7 +78,7 @@ export default function EventDetailPage() {
             ) : (
               <div style={{
                 height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: '#161B22', borderRadius: 8, color: '#8B949E', fontSize: 48,
+                background: t.bg, borderRadius: 8, color: t.muted, fontSize: 48,
               }}>
                 📷
               </div>
@@ -117,13 +119,13 @@ export default function EventDetailPage() {
           </Descriptions>
 
           {/* 处置时间轴 */}
-          <div style={{ fontWeight: 600, marginBottom: 8, color: '#E6EDF3' }}>📋 处置时间轴</div>
+          <div style={{ fontWeight: 600, marginBottom: 8, color: t.text }}>📋 处置时间轴</div>
           <Timeline items={timelineItems} style={{ marginBottom: 16 }} />
 
           {/* AI 分析 */}
-          <Card size="small" style={{ background: '#161B22', marginBottom: 16 }}>
-            <Typography.Text strong style={{ color: '#58A6FF' }}>🤖 AI 分析</Typography.Text>
-            <Typography.Paragraph style={{ marginTop: 8, fontSize: 13, color: '#8B949E' }}>
+          <Card size="small" style={{ background: t.bg, marginBottom: 16 }}>
+            <Typography.Text strong style={{ color: t.link }}>🤖 AI 分析</Typography.Text>
+            <Typography.Paragraph style={{ marginTop: 8, fontSize: 13, color: t.muted }}>
               检测到 {EVENT_TYPE_LABELS[event.type]}事件，置信度 {event.confidence}%。
               {event.level === 'high' ? '该事件风险等级较高，建议立即调度无人机抵近确认。' : ''}
               {event.level === 'medium' ? '建议值班员确认后决定是否调度无人机。' : ''}

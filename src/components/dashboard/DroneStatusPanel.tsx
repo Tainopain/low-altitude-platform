@@ -1,10 +1,12 @@
 import { Card, Progress, Tag, Typography } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { useDroneStore } from '../../stores/droneStore';
+import { useThemeColors } from '../../theme';
 import { DRONE_STATUS_CONFIG } from '../../types/drone';
 
 export function DroneStatusPanel() {
   const drones = useDroneStore((s) => s.drones);
+  const t = useThemeColors();
   const flyingCount = drones.filter((d) => d.status === 'flying').length;
   const standbyCount = drones.filter((d) => d.status === 'standby').length;
 
@@ -12,11 +14,11 @@ export function DroneStatusPanel() {
     <div style={{ padding: '8px 8px 8px 0', display: 'flex', flexDirection: 'column', gap: 8, height: '100%', overflow: 'auto' }}>
       {/* 汇总 */}
       <Card size="small" styles={{ body: { padding: '10px 12px' } }}>
-        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#E6EDF3' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, color: t.text }}>
           <SendOutlined style={{ color: '#3FB950', marginRight: 6 }} />
           无人机状态
         </div>
-        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#8B949E' }}>
+        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: t.muted }}>
           <span>在空: <b style={{ color: '#3FB950' }}>{flyingCount}</b> 架</span>
           <span>待命: <b style={{ color: '#D29922' }}>{standbyCount}</b> 架</span>
           <span>共: <b>{drones.length}</b> 架</span>
@@ -30,12 +32,12 @@ export function DroneStatusPanel() {
         return (
           <Card key={drone.id} size="small" styles={{ body: { padding: '10px 12px' } }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <Typography.Text strong style={{ fontSize: 13, color: '#E6EDF3' }}>
+              <Typography.Text strong style={{ fontSize: 13, color: t.text }}>
                 {drone.name}
               </Typography.Text>
               <Tag color={cfg.color} style={{ fontSize: 11, margin: 0 }}>{cfg.label}</Tag>
             </div>
-            <div style={{ fontSize: 12, color: '#8B949E', marginBottom: 6 }}>
+            <div style={{ fontSize: 12, color: t.muted, marginBottom: 6 }}>
               {drone.task}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -47,7 +49,7 @@ export function DroneStatusPanel() {
                 format={() => `${drone.battery}%`}
               />
               {isFlight && (
-                <span style={{ fontSize: 11, color: '#8B949E', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 11, color: t.muted, whiteSpace: 'nowrap' }}>
                   {drone.speed}km/h
                 </span>
               )}

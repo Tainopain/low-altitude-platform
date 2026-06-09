@@ -10,6 +10,7 @@ import { DashboardSkeleton } from '../components/shared/LoadingSkeleton';
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useThemeColors } from '../theme';
 
 /**
  * 大屏总览 — 首页
@@ -78,6 +79,8 @@ export function DashboardPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  const t = useThemeColors();
+
   // 加载中 — 必须在所有 hooks 之后才能条件返回
   if (eventLoading || droneLoading) {
     return <DashboardSkeleton />;
@@ -98,7 +101,7 @@ export function DashboardPage() {
         </div>
 
         {/* 地图区 + 左右折叠按钮 */}
-        <div style={{ flex: 1, position: 'relative', background: '#0D1117', transition: 'all 0.25s ease' }}>
+        <div style={{ flex: 1, position: 'relative', background: t.bg, transition: 'all 0.25s ease' }}>
           {/* 左折叠按钮 */}
           <Button
             type="text" size="small"
@@ -106,7 +109,7 @@ export function DashboardPage() {
             onClick={() => setKpiCollapsed(!kpiCollapsed)}
             style={{
               position: 'absolute', left: 4, top: 4, zIndex: 100,
-              background: 'rgba(22,27,34,0.85)', borderRadius: 4,
+              background: t.cardBg, borderRadius: 4,
             }}
           />
           {/* 右折叠按钮 */}
@@ -116,7 +119,7 @@ export function DashboardPage() {
             onClick={() => setDronePanelCollapsed(!dronePanelCollapsed)}
             style={{
               position: 'absolute', right: 4, top: 4, zIndex: 100,
-              background: 'rgba(22,27,34,0.85)', borderRadius: 4,
+              background: t.cardBg, borderRadius: 4,
             }}
           />
           <AMapContainer />
@@ -134,7 +137,7 @@ export function DashboardPage() {
       </div>
 
       {/* 底部: 实时事件流 */}
-      <div style={{ height: 168, borderTop: '1px solid #30363D', flexShrink: 0 }}>
+      <div style={{ height: 168, borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
         <EventStream />
       </div>
     </>

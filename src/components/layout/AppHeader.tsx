@@ -9,11 +9,13 @@ import { useUIStore } from '../../stores/uiStore';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
 import { useEffect, useState } from 'react';
+import { useThemeColors } from '../../theme';
 
 export function AppHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useUIStore();
+  const t = useThemeColors();
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const flyingCount = drones.filter((d) => d.status === 'flying').length;
@@ -66,7 +68,7 @@ export function AppHeader() {
           style={{ color: isActive('/settings') ? '#58A6FF' : undefined }}
         />
 
-        <span style={{ color: '#8B949E', fontSize: 12, margin: '0 8px' }}>
+        <span style={{ color: t.muted, fontSize: 12, margin: '0 8px' }}>
           {time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
         </span>
         <Button type="text" size="small" icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />} onClick={toggleTheme} />

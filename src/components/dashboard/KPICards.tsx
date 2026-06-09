@@ -2,11 +2,13 @@ import { Card, Statistic } from 'antd';
 import { AlertOutlined, ClockCircleOutlined, SendOutlined, CameraOutlined } from '@ant-design/icons';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
+import { useThemeColors } from '../../theme';
 import { CountUp } from '../shared/CountUp';
 
 export function KPICards() {
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
+  const t = useThemeColors();
   const pendingCount = events.filter((e) => e.status === 'pending').length;
   const highRiskPending = events.some((e) => e.level === 'high' && e.status === 'pending');
   const onlineDrones = drones.filter((d) => d.status === 'flying' || d.status === 'standby').length;
@@ -31,7 +33,7 @@ export function KPICards() {
       </Card>
       <Card size="small" styles={{ body: { padding: '10px 12px' } }}>
         <Statistic
-          title={<span style={{ fontSize: 12 }}><ClockCircleOutlined style={{ color: pendingCount > 0 ? '#F85149' : '#8B949E' }} /> 待处理</span>}
+          title={<span style={{ fontSize: 12 }}><ClockCircleOutlined style={{ color: pendingCount > 0 ? '#F85149' : t.muted }} /> 待处理</span>}
           value={pendingCount}
           formatter={(v) => <CountUp end={Number(v)} />}
           styles={{ value: { fontSize: 22, fontWeight: 700, color: pendingCount > 0 ? '#F85149' : undefined } }}

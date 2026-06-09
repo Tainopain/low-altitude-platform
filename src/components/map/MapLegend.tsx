@@ -1,11 +1,13 @@
 import { Space } from 'antd';
+import { useThemeColors } from '../../theme';
 
 export function MapLegend() {
+  const t = useThemeColors();
   return (
     <div style={{
       position: 'absolute', top: 12, left: 12, zIndex: 100,
-      background: 'rgba(22,27,34,0.85)', borderRadius: 6, padding: '8px 12px',
-      border: '1px solid #30363D',
+      background: t.cardBg, borderRadius: 6, padding: '8px 12px',
+      border: `1px solid ${t.border}`, color: t.text,
     }}>
       <Space orientation="vertical" size={4}>
         <span><span style={{ color: '#58A6FF', fontSize: 16 }}>━</span> G50 高速</span>

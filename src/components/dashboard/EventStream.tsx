@@ -8,6 +8,7 @@ import { LevelBadge } from '../shared/LevelBadge';
 import { StatusTag } from '../shared/StatusTag';
 import { useDroneStore } from '../../stores/droneStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useThemeColors } from '../../theme';
 import { SendOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
 const FILTER_OPTIONS: { label: string; value: EventLevel | 'all' }[] = [
@@ -25,6 +26,7 @@ function EventRow({ event }: { event: HighwayEvent }) {
   const setStatus = useDroneStore((s) => s.setStatus);
   const showVideoWindow = useUIStore((s) => s.showVideoWindow);
   const events = useEventStore((s) => s.events);
+  const t = useThemeColors();
   const cfg = EVENT_LEVEL_CONFIG[event.level];
 
   const timeStr = new Date(event.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -53,30 +55,32 @@ function EventRow({ event }: { event: HighwayEvent }) {
     }, 8000);
   };
 
+  const rowBg = event.level === 'high' ? t.highBg : 'transparent';
+
   return (
     <div style={{
       flexShrink: 0, width: 280,
       padding: '10px 12px',
-      background: cfg.bgColor,
+      background: rowBg,
       borderLeft: `4px solid ${cfg.color}`,
-      borderRight: '1px solid #30363D',
+      borderRight: `1px solid ${t.border}`,
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       cursor: 'pointer',
     }} onClick={() => navigate(`/event/${event.id}`)}>
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           <LevelBadge level={event.level} />
-          <Typography.Text strong style={{ color: '#E6EDF3', fontSize: 13 }}>
+          <Typography.Text strong style={{ color: t.text, fontSize: 13 }}>
             {EVENT_TYPE_LABELS[event.type]}
           </Typography.Text>
           <Typography.Link style={{ marginLeft: 'auto', fontSize: 11 }} onClick={(e) => { e.stopPropagation(); navigate(`/event/${event.id}`); }}>详情</Typography.Link>
-          <span style={{ fontSize: 11, color: '#8B949E' }}>{event.confidence}%</span>
+          <span style={{ fontSize: 11, color: t.muted }}>{event.confidence}%</span>
         </div>
         <Typography.Text type="secondary" style={{ fontSize: 11 }}>
           {event.roadName} {event.stakeNumber} {event.direction}
           <span style={{ float: 'right' }}>{timeStr}</span>
         </Typography.Text>
-        <div style={{ color: '#8B949E', fontSize: 11, marginTop: 1 }}>
+        <div style={{ color: t.muted, fontSize: 11, marginTop: 1 }}>
           {event.source === 'camera' ? '📷' : '✈️'} {event.sourceDetail}
           {event.status !== 'pending' && <StatusTag status={event.status} />}
         </div>
@@ -106,6 +110,7 @@ export function EventStream() {
   const filterLevel = useEventStore((s) => s.filterLevel);
   const setFilterLevel = useEventStore((s) => s.setFilterLevel);
   const { setAIDrawer, setHistoryDrawer } = useUIStore();
+  const t = useThemeColors();
 
   const filtered = filterLevel === 'all' ? events : events.filter((e) => e.level === filterLevel);
 
@@ -113,9 +118,9 @@ export function EventStream() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 12px', borderBottom: '1px solid #30363D', flexShrink: 0,
+        padding: '6px 12px', borderBottom: `1px solid ${t.border}`, flexShrink: 0,
       }}>
-        <Typography.Text strong style={{ fontSize: 13, color: '#E6EDF3' }}>
+        <Typography.Text strong style={{ fontSize: 13, color: t.text }}>
           实时事件流
         </Typography.Text>
         <Space size={8}>

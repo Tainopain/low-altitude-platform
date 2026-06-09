@@ -5,24 +5,19 @@ import { useAMap } from '../../hooks/useAMap';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useThemeColors } from '../../theme';
 import { MapLegend } from './MapLegend';
 import { DroneVideoWindow } from './DroneVideoWindow';
 
 // 试点路段 G50 中点坐标（重庆附近，Demo 用）
 const CENTER: [number, number] = [106.530, 29.540];
 
-// 主题色配置
-const THEME = {
-  dark: { bg: '#161B22', text: '#E6EDF3', border: '#30363D', link: '#58A6FF', muted: '#8B949E', shadow: 'rgba(0,0,0,0.4)' },
-  light: { bg: '#FFFFFF', text: '#1F2328', border: '#D0D7DE', link: '#0969DA', muted: '#656D76', shadow: 'rgba(0,0,0,0.12)' },
-} as const;
-
 export function AMapContainer() {
   const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 11 });
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const theme = useUIStore((s) => s.theme);
-  const t = THEME[theme];
+  const t = useThemeColors();
   const markersRef = useRef<Map<string, any>>(new Map());
   const infoWindowRef = useRef<any>(null);
 
@@ -347,7 +342,7 @@ export function AMapContainer() {
       <div style={{ textAlign: 'center', maxWidth: 480 }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🗺️</div>
         <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>地图加载失败</div>
-        <div style={{ color: '#8B949E', fontSize: 13, lineHeight: 1.8 }}>{error}</div>
+        <div style={{ color: t.muted, fontSize: 13, lineHeight: 1.8 }}>{error}</div>
       </div>
     </div>
   );

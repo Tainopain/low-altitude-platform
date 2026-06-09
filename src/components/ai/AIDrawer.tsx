@@ -3,12 +3,14 @@ import { Drawer, Input, Button, Space } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { useUIStore } from '../../stores/uiStore';
 import { useChatStore } from '../../stores/chatStore';
+import { useThemeColors } from '../../theme';
 import { MessageBubble } from './MessageBubble';
 import { QuickTags } from './QuickTags';
 
 export function AIDrawer() {
   const { aiDrawerOpen, setAIDrawer } = useUIStore();
   const { messages, send, streaming } = useChatStore();
+  const t = useThemeColors();
   const [input, setInput] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -39,7 +41,7 @@ export function AIDrawer() {
           <QuickTags onSend={handleSend} disabled={streaming} />
         )}
       </div>
-      <div style={{ padding: '12px 0', borderTop: '1px solid #30363D' }}>
+      <div style={{ padding: '12px 0', borderTop: `1px solid ${t.border}` }}>
         <Space.Compact style={{ width: '100%' }}>
           <Input
             value={input}

@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Table, Tag, Progress, Typography, Button, Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useDroneStore } from '../stores/droneStore';
+import { useThemeColors } from '../theme';
 import { DRONE_STATUS_CONFIG } from '../types/drone';
 
 export default function DronePage() {
   const navigate = useNavigate();
   const drones = useDroneStore((s) => s.drones);
+  const t = useThemeColors();
 
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
@@ -29,7 +31,7 @@ export default function DronePage() {
               <Progress percent={drone.battery} size="small"
                 strokeColor={drone.battery > 50 ? '#3FB950' : drone.battery > 20 ? '#D29922' : '#F85149'}
                 style={{ marginBottom: 4 }} />
-              <div style={{ fontSize: 12, color: '#8B949E' }}>
+              <div style={{ fontSize: 12, color: t.muted }}>
                 {drone.task} · {drone.speed > 0 ? `${drone.speed}km/h` : '停泊'}
               </div>
             </Card>

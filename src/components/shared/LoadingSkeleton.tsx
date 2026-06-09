@@ -1,7 +1,9 @@
 import { Skeleton, Card } from 'antd';
+import { useThemeColors } from '../../theme';
 
 /** 大屏加载骨架屏 */
 export function DashboardSkeleton() {
+  const t = useThemeColors();
   return (
     <div style={{ padding: 8, height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* KPI + Map + Drone */}
@@ -15,7 +17,7 @@ export function DashboardSkeleton() {
         {/* Map skeleton */}
         <div style={{ flex: 1 }}>
           <Skeleton.Node active style={{ width: '100%', height: '100%' }}>
-            <div style={{ width: '100%', height: '100%', background: '#161B22', borderRadius: 8 }} />
+            <div style={{ width: '100%', height: '100%', background: t.bg, borderRadius: 8 }} />
           </Skeleton.Node>
         </div>
         {/* Right drone skeleton */}

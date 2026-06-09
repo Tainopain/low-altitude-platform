@@ -3,12 +3,14 @@ import { Card, Col, Row, Statistic, Typography, Button, Space, Progress } from '
 import { ArrowLeftOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 import { useEventStore } from '../stores/eventStore';
+import { useThemeColors } from '../theme';
 import { EVENT_TYPE_LABELS } from '../types/event';
 
 const PIE_COLORS = ['#F85149', '#D29922', '#79C0FF', '#58A6FF', '#3FB950'];
 export default function AnalyticsPage() {
   const navigate = useNavigate();
   const events = useEventStore((s) => s.events);
+  const t = useThemeColors();
 
   const highCount = events.filter((e) => e.level === 'high').length;
   const pendingCount = events.filter((e) => e.status === 'pending').length;
@@ -88,12 +90,12 @@ export default function AnalyticsPage() {
           <Card title="📈 事件趋势（近 7 天）" size="small">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#30363D" />
-                <XAxis dataKey="date" stroke="#8B949E" fontSize={12} />
-                <YAxis stroke="#8B949E" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke={t.border} />
+                <XAxis dataKey="date" stroke={t.muted} fontSize={12} />
+                <YAxis stroke={t.muted} fontSize={12} />
                 <Tooltip
-                  contentStyle={{ background: '#161B22', border: '1px solid #30363D', borderRadius: 6 }}
-                  labelStyle={{ color: '#E6EDF3' }}
+                  contentStyle={{ background: t.bg, border: `1px solid ${t.border}`, borderRadius: 6 }}
+                  labelStyle={{ color: t.text }}
                 />
                 <Legend />
                 <Line type="monotone" dataKey="高危" stroke="#F85149" strokeWidth={2} dot={{ r: 3 }} />
@@ -126,10 +128,10 @@ export default function AnalyticsPage() {
           <Card title="📋 类型分布" size="small">
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value" label={({ name, value }) => `${name} ${value}`} labelLine={{ stroke: '#8B949E' }}>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value" label={({ name, value }) => `${name} ${value}`} labelLine={{ stroke: t.muted }}>
                   {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#161B22', border: '1px solid #30363D', borderRadius: 6 }} />
+                <Tooltip contentStyle={{ background: t.bg, border: `1px solid ${t.border}`, borderRadius: 6 }} />
               </PieChart>
             </ResponsiveContainer>
           </Card>
@@ -142,10 +144,10 @@ export default function AnalyticsPage() {
           <Card title="🚁 无人机利用率（%）" size="small">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={droneUsage}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#30363D" />
-                <XAxis dataKey="name" stroke="#8B949E" fontSize={12} />
-                <YAxis stroke="#8B949E" fontSize={12} />
-                <Tooltip contentStyle={{ background: '#161B22', border: '1px solid #30363D', borderRadius: 6 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={t.border} />
+                <XAxis dataKey="name" stroke={t.muted} fontSize={12} />
+                <YAxis stroke={t.muted} fontSize={12} />
+                <Tooltip contentStyle={{ background: t.bg, border: `1px solid ${t.border}`, borderRadius: 6 }} />
                 <Legend />
                 <Bar dataKey="巡逻" stackId="a" fill="#3FB950" />
                 <Bar dataKey="应急" stackId="a" fill="#F85149" />

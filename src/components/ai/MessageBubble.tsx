@@ -1,10 +1,12 @@
 import ReactMarkdown from 'react-markdown';
 import type { ChatMessage } from '../../types/chat';
+import { useThemeColors } from '../../theme';
 
 interface Props { message: ChatMessage; }
 
 export function MessageBubble({ message }: Props) {
   const isUser = message.role === 'user';
+  const t = useThemeColors();
 
   return (
     <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', marginBottom: 12 }}>
@@ -12,8 +14,8 @@ export function MessageBubble({ message }: Props) {
         maxWidth: '85%',
         padding: '8px 14px',
         borderRadius: 12,
-        background: isUser ? '#58A6FF' : '#21262D',
-        color: isUser ? '#fff' : '#E6EDF3',
+        background: isUser ? t.link : t.border,
+        color: isUser ? '#fff' : t.text,
         borderBottomRightRadius: isUser ? 4 : 12,
         borderBottomLeftRadius: isUser ? 12 : 4,
         fontSize: 13,
