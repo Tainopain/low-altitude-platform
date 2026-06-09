@@ -14,6 +14,7 @@ export interface HighwayEvent {
   coordinates: [number, number];
   screenshot?: string;         // AI 检测截图 URL
   aiDescription?: string;      // AI 分析描述
+  assessment?: any;            // AI 事件研判报告
   source: EventSource;
   sourceDetail: string;        // e.g. "摄像头 · 红外确认"
   status: EventStatus;

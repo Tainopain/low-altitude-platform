@@ -142,6 +142,65 @@ export default function EventDetailPage() {
           <div style={{ fontWeight: 600, marginBottom: 8, color: t.text }}>📋 处置时间轴</div>
           <Timeline items={timelineItems} style={{ marginBottom: 16 }} />
 
+          {/* AI 事件研判 */}
+          {event.assessment && (
+            <Card size="small" style={{ background: t.bg, marginBottom: 16, border: '1px solid #D29922' }}>
+              <Typography.Text strong style={{ color: '#D29922', fontSize: 14 }}>🔍 AI 事件研判</Typography.Text>
+
+              <div style={{ marginTop: 12 }}>
+                <Typography.Text strong>研判结论</Typography.Text>
+                <Typography.Paragraph style={{ marginTop: 4, fontSize: 13, color: t.text, lineHeight: 1.8 }}>
+                  {event.assessment.conclusion}
+                </Typography.Paragraph>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <Typography.Text strong>风险等级</Typography.Text>
+                <Typography.Paragraph style={{ marginTop: 4, fontSize: 13, color: event.level === 'high' ? '#F85149' : event.level === 'medium' ? '#D29922' : '#3FB950', lineHeight: 1.8 }}>
+                  {event.assessment.riskLevel}
+                </Typography.Paragraph>
+              </div>
+
+              {event.assessment.possibleCauses?.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <Typography.Text strong>可能原因</Typography.Text>
+                  <ul style={{ marginTop: 4, paddingLeft: 20, fontSize: 13, color: t.text, lineHeight: 2 }}>
+                    {event.assessment.possibleCauses.map((cause: string, i: number) => (
+                      <li key={i}>{cause.replace(/^\d+\.\s*/, '')}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {event.assessment.disposalSuggestions?.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <Typography.Text strong>处置建议</Typography.Text>
+                  <ul style={{ marginTop: 4, paddingLeft: 20, fontSize: 13, color: t.text, lineHeight: 2, listStyle: 'none' }}>
+                    {event.assessment.disposalSuggestions.map((s: any, i: number) => (
+                      <li key={i}>
+                        <Tag color={s.priority === '立即' ? 'red' : s.priority === '短期' ? 'orange' : 'blue'} style={{ fontSize: 10, marginRight: 6 }}>
+                          {s.priority}
+                        </Tag>
+                        {s.action}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {event.assessment.expectedImpact && (
+                <div style={{ marginTop: 12 }}>
+                  <Typography.Text strong>预计影响</Typography.Text>
+                  <div style={{ fontSize: 13, color: t.text, lineHeight: 2, marginTop: 4 }}>
+                    <div>影响路段：{event.assessment.expectedImpact.affectedArea}</div>
+                    <div>影响时长：{event.assessment.expectedImpact.duration}</div>
+                    <div>拥堵长度：{event.assessment.expectedImpact.congestionLength}</div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          )}
+
           {/* AI 分析 */}
           <Card size="small" style={{ background: t.bg, marginBottom: 16 }}>
             <Typography.Text strong style={{ color: t.link }}>🤖 AI 分析</Typography.Text>

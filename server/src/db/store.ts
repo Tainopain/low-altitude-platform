@@ -38,6 +38,7 @@ export async function initStore(): Promise<void> {
   // Migrate: add new columns for existing databases
   try { db.run('ALTER TABLE events ADD COLUMN screenshot TEXT'); } catch { /* ok */ }
   try { db.run('ALTER TABLE events ADD COLUMN ai_description TEXT'); } catch { /* ok */ }
+  try { db.run('ALTER TABLE events ADD COLUMN assessment TEXT'); } catch { /* ok */ }
 
   // Indexes
   db.run(`CREATE INDEX IF NOT EXISTS idx_events_status ON events(status)`);
@@ -179,7 +180,7 @@ export const store = {
   },
   createEvent(event: any) {
     execute(
-      'INSERT INTO events (id, type, level, confidence, road_name, stake_number, direction, lng, lat, source, source_detail, screenshot, ai_description, status, drone_id, confirmed_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO events (id, type, level, confidence, road_name, stake_number, direction, lng, lat, source, source_detail, screenshot, ai_description, assessment, status, drone_id, confirmed_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         event.id, event.type, event.level, event.confidence,
         event.road_name ?? event.roadName, event.stake_number ?? event.stakeNumber,
@@ -187,6 +188,7 @@ export const store = {
         event.source, event.source_detail ?? event.sourceDetail,
         event.screenshot ?? null,
         event.ai_description ?? event.aiDescription ?? null,
+        event.assessment ?? null,
         event.status, event.drone_id ?? event.droneId ?? null,
         event.confirmed_by ?? event.confirmedBy ?? null,
         event.created_at ?? new Date().toISOString(),

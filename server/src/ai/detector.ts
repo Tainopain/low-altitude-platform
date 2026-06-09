@@ -7,6 +7,7 @@ import { store } from '../db/store';
 import { broadcast } from '../ws';
 import { pickSample } from './samples';
 import { generateScreenshot } from './screenshot';
+import { generateAssessment } from './assessment';
 
 /** 9 个重庆主城立交监控点 */
 interface MonitorPoint {
@@ -67,6 +68,15 @@ export function startAIDetector(intervalMs = 300000) {
       const { url: screenshotUrl } = generateScreenshot(sample);
       const dir = point.lng > 106.50 ? '出城' : '进城';
 
+      // 生成 AI 研判报告
+      const drones = store.getDrones();
+      const droneName = drones[0]?.name || '最近待命无人机';
+      const assessment = generateAssessment({
+        type: sample.type, level: sample.level, confidence: sample.confidence,
+        roadName: point.name, stakeNumber: point.district, direction: dir,
+        description: sample.description, weather: sample.weather, droneName,
+      });
+
       const event = {
         id: uuid(),
         type: sample.type,
@@ -84,6 +94,7 @@ export function startAIDetector(intervalMs = 300000) {
         confirmed_by: null,
         screenshot: screenshotUrl,
         ai_description: `[${point.name}] ${sample.description} | 关联道路: ${point.road}`,
+        assessment: JSON.stringify(assessment),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

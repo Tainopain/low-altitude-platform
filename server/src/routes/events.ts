@@ -74,6 +74,7 @@ function mapEvent(row: any) {
     coordinates: [row.lng, row.lat],
     screenshot: row.screenshot || null,
     aiDescription: row.ai_description || null,
+    assessment: row.assessment ? JSON.parse(row.assessment) : null,
     source: row.source,
     sourceDetail: row.source_detail,
     status: row.status,

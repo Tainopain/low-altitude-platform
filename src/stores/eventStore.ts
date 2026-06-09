@@ -68,6 +68,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
         direction: e.direction,
         coordinates: e.coordinates,
         screenshot: e.screenshot,
+        aiDescription: e.aiDescription,
+        assessment: e.assessment,
         source: e.source,
         sourceDetail: e.sourceDetail,
         status: e.status,
