@@ -48,6 +48,17 @@ export const useDroneStore = create<DroneStore>((set, get) => ({
       }));
       set({ drones, loading: false });
     } catch {
+      // Demo 模式：客户端模拟数据
+      if (get().drones.length === 0) {
+        set({
+          drones: [
+            { id: 'DRONE-01', name: '北环机舱',   status: 'standby', coordinates: [106.507, 29.605], homePosition: [106.507, 29.605], heading: 0, battery: 100, task: '覆盖: 北环/石马河/东环', speed: 0 },
+            { id: 'DRONE-02', name: '沙坪坝机舱', status: 'standby', coordinates: [106.449, 29.552], homePosition: [106.449, 29.552], heading: 0, battery: 100, task: '覆盖: 杨公桥/高滩岩', speed: 0 },
+            { id: 'DRONE-03', name: '华岩机舱',   status: 'standby', coordinates: [106.445, 29.508], homePosition: [106.445, 29.508], heading: 0, battery: 100, task: '覆盖: 西环/凤中', speed: 0 },
+            { id: 'DRONE-04', name: '南岸机舱',   status: 'standby', coordinates: [106.584, 29.522], homePosition: [106.584, 29.522], heading: 0, battery: 100, task: '覆盖: 四公里/江南', speed: 0 },
+          ],
+        });
+      }
       set({ loading: false });
     }
   },

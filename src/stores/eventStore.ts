@@ -79,7 +79,55 @@ export const useEventStore = create<EventStore>((set, get) => ({
       }));
       set({ events, loading: false });
     } catch {
+      // Demo 模式：客户端模拟数据
+      if (get().events.length === 0) {
+        loadDemoData(set);
+      }
       set({ loading: false, error: null });
     }
   },
 }));
+
+function loadDemoData(set: any) {
+  const now = Date.now();
+  const points = [
+    { name: '北环立交', district: '江北/渝北', lng: 106.497385, lat: 29.609658 },
+    { name: '石马河立交', district: '江北区', lng: 106.471885, lat: 29.584855 },
+    { name: '东环立交', district: '江北区', lng: 106.551681, lat: 29.620295 },
+    { name: '四公里立交', district: '南岸区', lng: 106.575596, lat: 29.514190 },
+    { name: '江南立交', district: '南岸区', lng: 106.592240, lat: 29.530410 },
+    { name: '凤中立交', district: '九龙坡', lng: 106.447897, lat: 29.498872 },
+    { name: '西环立交', district: '九龙坡', lng: 106.441436, lat: 29.517380 },
+    { name: '高滩岩立交', district: '沙坪坝区', lng: 106.443702, lat: 29.539939 },
+    { name: '杨公桥立交', district: '沙坪坝区', lng: 106.453861, lat: 29.564296 },
+  ];
+  const types = ['accident', 'congestion', 'obstacle', 'smoke', 'fire'] as const;
+  const levels = ['high', 'medium', 'low'] as const;
+  let counter = 0;
+  const demoEvents = Array.from({ length: 12 }, (_, i) => {
+    const pt = points[i % points.length];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const level = levels[Math.floor(Math.random() * levels.length)];
+    counter++;
+    return {
+      id: `demo_evt_${counter}`,
+      type,
+      level,
+      confidence: 60 + Math.floor(Math.random() * 35),
+      roadName: pt.name,
+      stakeNumber: pt.district,
+      direction: i % 2 === 0 ? '进城' : '出城',
+      coordinates: [pt.lng + (Math.random() - 0.5) * 0.002, pt.lat + (Math.random() - 0.5) * 0.002] as [number, number],
+      screenshot: undefined,
+      aiDescription: `[${pt.name}] Demo 模式 — 模拟${type}事件，置信度${60 + Math.floor(Math.random() * 35)}%`,
+      assessment: undefined,
+      source: 'camera' as const,
+      sourceDetail: `${pt.name} · Demo 模式`,
+      status: i < 3 ? 'pending' : i < 6 ? 'confirmed' : i < 9 ? 'dispatching' : 'resolved',
+      confirmedBy: i >= 3 ? '值班员' : undefined,
+      droneId: i >= 6 ? 'DRONE-01' : undefined,
+      createdAt: now - (11 - i) * 300000,
+    };
+  });
+  set({ events: demoEvents });
+}

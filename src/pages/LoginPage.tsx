@@ -22,18 +22,26 @@ export default function LoginPage() {
   const handleLogin = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
+      // 优先尝试真实 API
       const { api } = await import('../api/client');
       const res = await api.login(values.username, values.password, role);
       setToken(res.token);
-      localStorage.setItem('role', role);
-      localStorage.setItem('username', values.username);
-      message.success(`欢迎，${values.username}（${role === 'admin' ? '管理员' : '值班员'}）`);
-      navigate('/');
     } catch {
-      message.error('用户名或密码错误');
-    } finally {
-      setLoading(false);
+      // Demo 模式：客户端模拟登录
+      if ((values.username === 'admin' && values.password === 'admin123') ||
+          (values.username === 'operator' && values.password === 'operator123')) {
+        setToken(`demo_jwt_${values.username}_${Date.now()}`);
+      } else {
+        message.error('用户名或密码错误（demo: admin/admin123）');
+        setLoading(false);
+        return;
+      }
     }
+    localStorage.setItem('role', role);
+    localStorage.setItem('username', values.username);
+    message.success(`欢迎，${values.username}（${role === 'admin' ? '管理员' : '值班员'}）`);
+    navigate('/');
+    setLoading(false);
   };
 
   return (
