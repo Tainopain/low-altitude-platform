@@ -10,7 +10,7 @@ import AMapLoader from '@amap/amap-jsapi-loader';
  * 3. 将 "localhost" 添加到 Key 的白名单域名中
  * 4. 将获取到的 Key 填入 .env 文件中的 VITE_AMAP_KEY
  */
-const AMAP_KEY = import.meta.env.VITE_AMAP_KEY || 'a9b8cb42ec24eadd4e79505e8972aabe';
+const AMAP_KEY = import.meta.env.VITE_AMAP_KEY || '69beccf52b9d71c4e616938ada0c7834';
 const AMAP_VERSION = '2.0';
 
 interface UseAMapOptions {
