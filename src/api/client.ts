@@ -4,7 +4,8 @@
  * 若后端不可用，自动降级为本地 mock 数据
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// 使用相对路径走 Vite proxy，避免跨域问题
+const API_URL = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : '';
 
 let authToken: string | null = localStorage.getItem('token');
 
@@ -38,6 +39,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  get: (path: string) => request<any>(path),
   post: (path: string, body?: Record<string, any>) =>
     request<any>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
 

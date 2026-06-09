@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Segmented, Typography, Button, Badge, Space } from 'antd';
+import { Segmented, Typography, Button, Badge, Space, Switch } from 'antd';
 import { MessageOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useEventStore } from '../../stores/eventStore';
 import type { EventLevel, HighwayEvent } from '../../types/event';
@@ -65,8 +66,7 @@ function EventRow({ event }: { event: HighwayEvent }) {
       borderLeft: `4px solid ${cfg.color}`,
       borderRight: `1px solid ${t.border}`,
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-      cursor: 'pointer',
-    }} onClick={() => navigate(`/event/${event.id}`)}>
+    }}>
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           <LevelBadge level={event.level} />
@@ -105,12 +105,49 @@ function EventRow({ event }: { event: HighwayEvent }) {
   );
 }
 
+/** 紧凑模式：单行，高度 36px */
+function CompactRow({ event }: { event: HighwayEvent }) {
+  const navigate = useNavigate();
+  const updateEvent = useEventStore((s) => s.updateEvent);
+  const t = useThemeColors();
+  const cfg = EVENT_LEVEL_CONFIG[event.level];
+  const timeStr = new Date(event.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
+  return (
+    <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '4px 12px', height: 36,
+        borderBottom: `1px solid ${t.border}`,
+        borderLeft: `3px solid ${cfg.color}`,
+        background: event.level === 'high' ? t.highBg : 'transparent',
+        fontSize: 12, color: t.text,
+        whiteSpace: 'nowrap', flexShrink: 0,
+      }}
+    >
+      <LevelBadge level={event.level} />
+      <span style={{ fontWeight: 500, minWidth: 60 }}>{EVENT_TYPE_LABELS[event.type]}</span>
+      <span style={{ color: t.muted }}>{event.roadName} {event.stakeNumber}</span>
+      <span style={{ marginLeft: 'auto', color: t.muted }}>{timeStr}</span>
+      {event.status !== 'pending' && <StatusTag status={event.status} />}
+      {event.status === 'pending' && (
+        <Button
+          size="small" type="link" style={{ fontSize: 11, padding: 0, height: 22 }}
+          onClick={(e) => { e.stopPropagation(); updateEvent(event.id, { status: 'confirmed', confirmedBy: '值班员' }); }}
+        >
+          确认
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function EventStream() {
   const events = useEventStore((s) => s.events);
   const filterLevel = useEventStore((s) => s.filterLevel);
   const setFilterLevel = useEventStore((s) => s.setFilterLevel);
   const { setAIDrawer, setHistoryDrawer } = useUIStore();
   const t = useThemeColors();
+  const [compact, setCompact] = useState(false);
 
   const filtered = filterLevel === 'all' ? events : events.filter((e) => e.level === filterLevel);
 
@@ -124,6 +161,13 @@ export function EventStream() {
           实时事件流
         </Typography.Text>
         <Space size={8}>
+          <Switch
+            size="small"
+            checked={compact}
+            onChange={setCompact}
+            checkedChildren="紧凑"
+            unCheckedChildren="详情"
+          />
           <Segmented
             size="small"
             options={FILTER_OPTIONS}
@@ -141,12 +185,14 @@ export function EventStream() {
         </Space>
       </div>
       <div style={{
-        flex: 1, overflowX: 'auto', overflowY: 'hidden',
-        display: 'flex', alignItems: 'stretch',
+        flex: 1, overflowX: compact ? 'hidden' : 'auto', overflowY: compact ? 'auto' : 'hidden',
+        display: 'flex', flexDirection: compact ? 'column' : 'row', alignItems: compact ? 'stretch' : 'stretch',
       }}>
-        {filtered.map((evt) => (
-          <EventRow key={evt.id} event={evt} />
-        ))}
+        {filtered.map((evt) =>
+          compact
+            ? <CompactRow key={evt.id} event={evt} />
+            : <EventRow key={evt.id} event={evt} />
+        )}
       </div>
     </div>
   );

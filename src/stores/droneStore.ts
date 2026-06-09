@@ -48,19 +48,7 @@ export const useDroneStore = create<DroneStore>((set, get) => ({
       }));
       set({ drones, loading: false });
     } catch {
-      if (get().drones.length === 0) loadMockData(set);
       set({ loading: false });
     }
   },
 }));
-
-function loadMockData(set: any) {
-  set({
-    drones: [
-      { id: 'DJI-001', name: 'DJI-001', status: 'flying', coordinates: [106.500, 29.505], homePosition: [106.500, 29.505], heading: 45, battery: 78, task: '巡逻中: G50南段', speed: 60 },
-      { id: 'DJI-002', name: 'DJI-002', status: 'standby', coordinates: [106.535, 29.592], homePosition: [106.535, 29.592], heading: 0, battery: 100, task: '待命', speed: 0 },
-      { id: 'DJI-003', name: 'DJI-003', status: 'standby', coordinates: [106.570, 29.505], homePosition: [106.570, 29.505], heading: 0, battery: 95, task: '待命', speed: 0 },
-      { id: 'DJI-004', name: 'DJI-004', status: 'charging', coordinates: [106.555, 29.598], homePosition: [106.555, 29.598], heading: 0, battery: 35, task: '充电中', speed: 0 },
-    ],
-  });
-}

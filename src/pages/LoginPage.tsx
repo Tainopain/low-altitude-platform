@@ -21,15 +21,19 @@ export default function LoginPage() {
 
   const handleLogin = async (values: { username: string; password: string }) => {
     setLoading(true);
-    // MVP: mock 登录，实际应调用 API
-    await new Promise((r) => setTimeout(r, 800));
-    const mockToken = `mock_jwt_${values.username}_${role}_${Date.now()}`;
-    setToken(mockToken);
-    localStorage.setItem('role', role);
-    localStorage.setItem('username', values.username);
-    message.success(`欢迎，${values.username}（${role === 'admin' ? '管理员' : '值班员'}）`);
-    navigate('/');
-    setLoading(false);
+    try {
+      const { api } = await import('../api/client');
+      const res = await api.login(values.username, values.password, role);
+      setToken(res.token);
+      localStorage.setItem('role', role);
+      localStorage.setItem('username', values.username);
+      message.success(`欢迎，${values.username}（${role === 'admin' ? '管理员' : '值班员'}）`);
+      navigate('/');
+    } catch {
+      message.error('用户名或密码错误');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

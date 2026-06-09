@@ -11,7 +11,6 @@ export function MapLegend() {
     }}>
       <Space orientation="vertical" size={4}>
         <span><span style={{ color: '#58A6FF', fontSize: 16 }}>━</span> G50 高速</span>
-        <span><span style={{ color: '#3FB950', fontSize: 16 }}>┅</span> 巡逻航线</span>
         <span><span style={{ color: '#F85149', fontSize: 16 }}>●</span> 高危事件</span>
         <span><span style={{ color: '#D29922', fontSize: 16 }}>●</span> 中危事件</span>
         <span><span style={{ color: '#79C0FF', fontSize: 16 }}>●</span> 低危事件</span>

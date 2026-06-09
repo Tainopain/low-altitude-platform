@@ -50,7 +50,7 @@ export function KPICards() {
       <Card size="small" styles={{ body: { padding: '10px 12px' } }}>
         <Statistic
           title={<span style={{ fontSize: 12 }}><CameraOutlined style={{ color: '#3FB950' }} /> 摄像头</span>}
-          value="4/4"
+          value="9/9"
           styles={{ value: { fontSize: 22, fontWeight: 700 } }}
         />
       </Card>

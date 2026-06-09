@@ -5,6 +5,8 @@ import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { useEventStore } from '../stores/eventStore';
 import { useThemeColors } from '../theme';
 import { EVENT_TYPE_LABELS } from '../types/event';
+import { EventHeatmap } from '../components/analytics/EventHeatmap';
+import { AIInsightsPanel } from '../components/analytics/AIInsightsPanel';
 
 const PIE_COLORS = ['#F85149', '#D29922', '#79C0FF', '#58A6FF', '#3FB950'];
 export default function AnalyticsPage() {
@@ -37,10 +39,10 @@ export default function AnalyticsPage() {
 
   // 无人机利用率 (mock)
   const droneUsage = [
-    { name: 'DJI-001', 巡逻: 65, 应急: 20, 充电: 10, 待命: 5 },
-    { name: 'DJI-002', 巡逻: 30, 应急: 35, 充电: 15, 待命: 20 },
-    { name: 'DJI-003', 巡逻: 40, 应急: 15, 充电: 25, 待命: 20 },
-    { name: 'DJI-004', 巡逻: 20, 应急: 10, 充电: 50, 待命: 20 },
+    { name: '北环机舱', 巡逻: 65, 应急: 20, 充电: 10, 待命: 5 },
+    { name: '沙坪坝机舱', 巡逻: 30, 应急: 35, 充电: 15, 待命: 20 },
+    { name: '华岩机舱', 巡逻: 40, 应急: 15, 充电: 25, 待命: 20 },
+    { name: '南岸机舱', 巡逻: 20, 应急: 10, 充电: 50, 待命: 20 },
   ];
 
   // AI 准确率仪表盘数据
@@ -52,7 +54,7 @@ export default function AnalyticsPage() {
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/')}>返回大屏</Button>
       </Space>
       <Typography.Title level={4} style={{ marginBottom: 4 }}>📊 数据看板</Typography.Title>
-      <Typography.Text type="secondary">试点路段 G50 · 过去 7 天统计</Typography.Text>
+      <Typography.Text type="secondary">重庆主城 9 立交监控点 · 过去 7 天统计</Typography.Text>
 
       {/* KPI 概览 */}
       <Row gutter={16} style={{ marginTop: 16, marginBottom: 24 }}>
@@ -80,6 +82,16 @@ export default function AnalyticsPage() {
             <Statistic title="待处理" value={pendingCount} suffix="条"
               styles={{ value: { fontSize: 28, fontWeight: 700, color: pendingCount > 0 ? '#D29922' : '#3FB950' } }} />
           </Card>
+        </Col>
+      </Row>
+
+      {/* 事件热力图 + AI 洞察 */}
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={16}>
+          <EventHeatmap />
+        </Col>
+        <Col span={8}>
+          <AIInsightsPanel />
         </Col>
       </Row>
 

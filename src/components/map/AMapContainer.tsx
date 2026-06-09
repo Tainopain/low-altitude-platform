@@ -1,19 +1,50 @@
-import { useEffect, useRef } from 'react';
-import { Spin, FloatButton } from 'antd';
-import { ZoomInOutlined, ZoomOutOutlined, AimOutlined, FullscreenOutlined } from '@ant-design/icons';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { Spin } from 'antd';
 import { useAMap } from '../../hooks/useAMap';
 import { useEventStore } from '../../stores/eventStore';
 import { useDroneStore } from '../../stores/droneStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useThemeColors } from '../../theme';
-import { MapLegend } from './MapLegend';
+import { MapToolbar } from './MapToolbar';
 import { DroneVideoWindow } from './DroneVideoWindow';
 
-// 试点路段 G50 中点坐标（重庆附近，Demo 用）
-const CENTER: [number, number] = [106.530, 29.540];
+// 重庆主城 9 立交监控点（实地标定 GCJ-02 坐标）
+const MONITOR_POINTS = [
+  { name: '北环立交',   lng: 106.497385, lat: 29.609658 },
+  { name: '石马河立交', lng: 106.471885, lat: 29.584855 },
+  { name: '东环立交',   lng: 106.551681, lat: 29.620295 },
+  { name: '四公里立交', lng: 106.575596, lat: 29.514190 },
+  { name: '江南立交',   lng: 106.592240, lat: 29.530410 },
+  { name: '凤中立交',   lng: 106.447897, lat: 29.498872 },
+  { name: '西环立交',   lng: 106.441436, lat: 29.517380 },
+  { name: '高滩岩立交', lng: 106.443702, lat: 29.539939 },
+  { name: '杨公桥立交', lng: 106.453861, lat: 29.564296 },
+];
+const CENTER: [number, number] = [106.515, 29.562];
 
 export function AMapContainer() {
   const { amap, loaded, error } = useAMap({ containerId: 'amap-container', center: CENTER, zoom: 11 });
+
+  // 开发模式下暴露 AMap 实例 + 点击捕获 + 浮动坐标面板
+  const coordPanelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!amap) return;
+    const win = window as any;
+    win.__amap = amap;
+    win.__amapClickCoords = [];
+    // AMap 2.0 使用 map.on('click') 而非 AMap.event.addListener
+    amap.on('click', (e: any) => {
+      const lng = parseFloat(e.lnglat.lng.toFixed(6));
+      const lat = parseFloat(e.lnglat.lat.toFixed(6));
+      const c = { lng, lat };
+      win.__amapClickCoords.push(c);
+      if (win.__amapClickCoords.length > 20) win.__amapClickCoords.shift();
+      win.__lastClick = c;
+      if (coordPanelRef.current) {
+        coordPanelRef.current.textContent = `📍 ${lng}, ${lat}`;
+      }
+    });
+  }, [amap]);
   const events = useEventStore((s) => s.events);
   const drones = useDroneStore((s) => s.drones);
   const theme = useUIStore((s) => s.theme);
@@ -21,6 +52,59 @@ export function AMapContainer() {
   const markersRef = useRef<Map<string, any>>(new Map());
   const infoWindowRef = useRef<any>(null);
   const trailPositionsRef = useRef<Map<string, Array<[number, number]>>>(new Map());
+  const heatmapRef = useRef<any>(null);
+
+  // 热力图开关
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const toggleHeatmap = useCallback(() => setShowHeatmap((v) => !v), []);
+
+  // 地图缩放级别（用于动态网格聚合）
+  const [zoom, setZoom] = useState(11);
+  useEffect(() => {
+    if (!amap) return;
+    setZoom(amap.getZoom());
+    const handler = () => setZoom(amap.getZoom());
+    amap.on('zoomchange', handler);
+    return () => amap.off('zoomchange', handler);
+  }, [amap]);
+
+  // 热力图图层
+  useEffect(() => {
+    if (!amap) return;
+    const AMap = (window as any).AMap;
+    if (!AMap) return;
+
+    if (!showHeatmap) {
+      if (heatmapRef.current) { heatmapRef.current.setMap(null); heatmapRef.current = null; }
+      return;
+    }
+
+    // 聚合事件坐标
+    const coordMap = new Map<string, { lng: number; lat: number; count: number }>();
+    events.forEach((evt) => {
+      const [lng, lat] = evt.coordinates;
+      const key = `${lng.toFixed(3)},${lat.toFixed(3)}`;
+      if (coordMap.has(key)) {
+        coordMap.get(key)!.count += evt.level === 'high' ? 3 : evt.level === 'medium' ? 2 : 1;
+      } else {
+        coordMap.set(key, { lng, lat, count: evt.level === 'high' ? 3 : evt.level === 'medium' ? 2 : 1 });
+      }
+    });
+    const heatData = Array.from(coordMap.values());
+
+    const create = () => {
+      if (heatmapRef.current) { heatmapRef.current.setMap(null); }
+      heatmapRef.current = new AMap.HeatMap(amap, {
+        radius: 35,
+        opacity: [0, 0.6],
+        gradient: { '0.1': '#79C0FF', '0.4': '#3FB950', '0.6': '#D29922', '0.8': '#F85149', '0.95': '#8B0000' },
+        zooms: [4, 18],
+      });
+      heatmapRef.current.setDataSet({ data: heatData, max: 10 });
+    };
+
+    if (AMap.HeatMap) { create(); } else { AMap.plugin(['AMap.HeatMap'], create); }
+  }, [amap, events, showHeatmap]);
 
   // 主题化包裹 InfoWindow 内容（带 CSS 三角箭头）
   const wrapContent = (inner: string) =>
@@ -45,46 +129,35 @@ export function AMapContainer() {
     infoWindowRef.current = iw;
   };
 
-  // G50 高速公路 + 巡逻路线
-  const G50_ROUTE: Array<[number, number]> = [
-    [106.490, 29.475], [106.500, 29.480], [106.510, 29.485],
-    [106.520, 29.492], [106.530, 29.500], [106.540, 29.508],
-    [106.550, 29.515], [106.560, 29.520], [106.570, 29.510],
-    [106.575, 29.500], [106.570, 29.490], [106.560, 29.482],
-    [106.550, 29.478], [106.540, 29.476], [106.530, 29.478],
-    [106.520, 29.482], [106.510, 29.488], [106.500, 29.485],
-  ];
-
-  // 绘制 G50 高速路线 + 巡逻航线
+  // 9 个监控点标记
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    // G50 高速公路（粗实线）
-    const highway = new AMap.Polyline({
-      path: G50_ROUTE,
-      strokeColor: '#58A6FF',
-      strokeWeight: 4,
-      strokeOpacity: 0.5,
-      strokeStyle: 'solid',
-    });
-    highway.setMap(amap);
-    markersRef.current.set('g50_highway', highway);
+    markersRef.current.forEach((m, key) => { if (key.startsWith('monitor_')) m.setMap(null); });
 
-    // 巡逻航线（虚线）
-    const patrolLine = new AMap.Polyline({
-      path: G50_ROUTE,
-      strokeColor: '#3FB950',
-      strokeWeight: 2,
-      strokeOpacity: 0.4,
-      strokeStyle: 'dashed',
-      strokeDasharray: [8, 12],
+    MONITOR_POINTS.forEach((pt) => {
+      const marker = new AMap.Marker({
+        position: [pt.lng, pt.lat],
+        content: '<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(88,166,255,0.15);border:2px solid #58A6FF;border-radius:50%;box-shadow:0 0 8px rgba(88,166,255,0.3);">📷</div>',
+        offset: new AMap.Pixel(-11, -11),
+        zIndex: 60,
+      });
+      marker.on('click', () => {
+        const content = `<b>📷 ${pt.name}</b><br/>
+          <span style="color:${t.muted}">位置: ${pt.lat.toFixed(3)}°N, ${pt.lng.toFixed(3)}°E</span><br/>
+          <span style="color:${t.muted}">状态: 监控中</span>`;
+        showInfo(AMap, [pt.lng, pt.lat], content);
+      });
+      marker.setMap(amap);
+      markersRef.current.set(`monitor_${pt.name}`, marker);
     });
-    patrolLine.setMap(amap);
-    markersRef.current.set('g50_patrol', patrolLine);
+  }, [amap, theme]);
 
-    // 点击地图空白区域关闭 InfoWindow
+  // 点击地图空白区域关闭 InfoWindow
+  useEffect(() => {
+    if (!amap) return;
     const closeInfo = () => {
       if (infoWindowRef.current) {
         infoWindowRef.current.close();
@@ -95,33 +168,47 @@ export function AMapContainer() {
     return () => { amap.off('click', closeInfo); };
   }, [amap]);
 
-  // 初始化机舱 Markers（每架无人机对应一个机舱，一对一）
+  // 4 机舱标记 + 5km 覆盖圈
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    // 清理旧机舱 markers
-    markersRef.current.forEach((m, key) => { if (key.startsWith('hangar_')) m.setMap(null); });
+    markersRef.current.forEach((m, key) => { if (key.startsWith('hangar_') || key.startsWith('cover_')) m.setMap(null); });
 
-    // 去重：不同无人机可能共享同一机舱位置
     const seen = new Set<string>();
     drones.forEach((drone) => {
-      const key = `${drone.homePosition[0]}_${drone.homePosition[1]}`;
-      if (seen.has(key)) return;
-      seen.add(key);
+      const posKey = `${drone.homePosition[0]}_${drone.homePosition[1]}`;
+      if (seen.has(posKey)) return;
+      seen.add(posKey);
 
+      // 5km 覆盖圈（半透明填充 + 实线边框，确保可见）
+      const circle = new AMap.Circle({
+        center: drone.homePosition,
+        radius: 5000,
+        strokeColor: '#3FB950',
+        strokeWeight: 2,
+        strokeOpacity: 0.6,
+        fillColor: '#3FB950',
+        fillOpacity: 0.08,
+      });
+      circle.setMap(amap);
+      markersRef.current.set(`cover_${drone.id}`, circle);
+
+      // 机舱标记
       const marker = new AMap.Marker({
         position: drone.homePosition,
-        content: '<div style="font-size:20px;text-align:center;">🏠</div>',
-        offset: new AMap.Pixel(-12, -12),
+        content: '<div style="font-size:24px;text-align:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🏠</div>',
+        offset: new AMap.Pixel(-14, -14),
+        zIndex: 80,
       });
-      const owner = drones.filter((d) => d.homePosition[0] === drone.homePosition[0] && d.homePosition[1] === drone.homePosition[1]);
+      const dronesHere = drones.filter((d) => d.homePosition[0] === drone.homePosition[0] && d.homePosition[1] === drone.homePosition[1]);
       marker.on('click', () => {
-        const droneList = owner.map((d) => `${d.name} (${d.status === 'flying' ? '在空' : d.status === 'standby' ? '待命' : '充电中'})`).join('<br/>');
-        const content = `<b>🏠 机舱</b><br/>
-          ${droneList}<br/>
-          <span style="color:${t.muted}">位置: ${drone.homePosition[1].toFixed(4)}, ${drone.homePosition[0].toFixed(4)}</span>`;
+        const list = dronesHere.map((d) => `${d.name} · ${d.task}`).join('<br/>');
+        const content = `<b>🏠 ${drone.name}</b><br/>
+          ${list}<br/>
+          <span style="color:#3FB950">覆盖半径: 5km</span> &nbsp;
+          <span style="color:${t.muted}">${drone.homePosition[1].toFixed(4)}°, ${drone.homePosition[0].toFixed(4)}°</span>`;
         showInfo(AMap, drone.homePosition, content);
       });
       marker.setMap(amap);
@@ -129,40 +216,88 @@ export function AMapContainer() {
     });
   }, [amap, drones, theme]);
 
-  // 同步事件 Markers
+  // 同步事件 Markers（自定义网格聚合，避免依赖 MarkerClusterer 插件）
   useEffect(() => {
     if (!amap) return;
     const AMap = (window as any).AMap;
     if (!AMap) return;
 
-    markersRef.current.forEach((m, key) => { if (key.startsWith('evt_')) m.setMap(null); });
+    // 清理旧标记
+    markersRef.current.forEach((m, key) => { if (key.startsWith('evt_') || key.startsWith('grid_')) m.setMap(null); });
 
-    // 已关闭/已处理的事件不在地图上显示
-    events.filter((e) => e.status !== 'closed' && e.status !== 'resolved').forEach((evt) => {
-      const color = evt.level === 'high' ? '#F85149' : evt.level === 'medium' ? '#D29922' : '#79C0FF';
-      const levelLabel = evt.level === 'high' ? '高危' : evt.level === 'medium' ? '中危' : '低危';
-      const pulseClass = evt.level === 'high' ? 'marker-pulse' : '';
-      const marker = new AMap.Marker({
-        position: evt.coordinates,
-        content: `<div class="${pulseClass}" style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid ${color}44;"></div>`,
-        offset: new AMap.Pixel(-7, -7),
-      });
-      const timeStr = new Date(evt.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      marker.on('click', () => {
-        const content = `<b style="color:${color}">${levelLabel} · ${evt.type}</b><br/>
-          路段: ${evt.roadName} ${evt.stakeNumber}<br/>
-          置信度: ${evt.confidence}% &nbsp; 来源: ${evt.source === 'camera' ? '📷' : '✈️'} ${evt.sourceDetail}<br/>
-          <span style="color:${t.muted}">时间: ${timeStr}</span><br/>
-          <a href="/event/${evt.id}" style="color:${t.link};text-decoration:none;font-weight:500;"
-             onclick="event.preventDefault();window.history.pushState(null,'','/event/${evt.id}');window.dispatchEvent(new PopStateEvent('popstate'));">
-            查看详情 →
-          </a>`;
-        showInfo(AMap, evt.coordinates, content);
-      });
-      marker.setMap(amap);
-      markersRef.current.set(`evt_${evt.id}`, marker);
+    const activeEvents = events.filter((e) => e.status !== 'closed' && e.status !== 'resolved');
+    if (activeEvents.length === 0) return;
+
+    // 动态网格：zoom 越大格子越小
+    const GRID = zoom >= 15 ? 0.0005 : zoom >= 13 ? 0.002 : zoom >= 10 ? 0.005 : 0.02;
+    const grid = new Map<string, { events: typeof activeEvents; lng: number; lat: number; highCount: number }>();
+
+    activeEvents.forEach((evt) => {
+      const glng = Math.round(evt.coordinates[0] / GRID) * GRID;
+      const glat = Math.round(evt.coordinates[1] / GRID) * GRID;
+      const key = `${glng.toFixed(3)},${glat.toFixed(3)}`;
+      if (!grid.has(key)) {
+        grid.set(key, { events: [], lng: glng, lat: glat, highCount: 0 });
+      }
+      const cell = grid.get(key)!;
+      cell.events.push(evt);
+      if (evt.level === 'high') cell.highCount++;
     });
-  }, [amap, events, theme]);
+
+    grid.forEach((cell) => {
+      const count = cell.events.length;
+      const hasHigh = cell.highCount > 0;
+      const color = hasHigh ? '#F85149' : count >= 3 ? '#D29922' : '#58A6FF';
+      const pulseClass = hasHigh ? 'marker-pulse' : '';
+      const size = count >= 5 ? 22 : count >= 3 ? 18 : 14;
+
+      const marker = new AMap.Marker({
+        position: [cell.lng, cell.lat],
+        content: count > 1
+          ? `<div class="${pulseClass}" style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${color}44;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">${count}</div>`
+          : `<div class="${pulseClass}" style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${color}44;"></div>`,
+        offset: new AMap.Pixel(-size / 2, -size / 2),
+        zIndex: count >= 5 ? 120 : count >= 3 ? 110 : 100,
+      });
+
+      marker.on('click', () => {
+        if (count === 1) {
+          const evt = cell.events[0];
+          const timeStr = new Date(evt.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+          const hasScreenshot = evt.screenshot && evt.screenshot.length > 0;
+          const imgHtml = hasScreenshot
+            ? `<div style="margin:6px 0;border-radius:4px;overflow:hidden;background:#000;"><img src="${evt.screenshot}" style="width:100%;max-height:120px;object-fit:cover;display:block;" onerror="this.style.display='none'"/></div>`
+            : '';
+          const levelLabel = evt.level === 'high' ? '高危' : evt.level === 'medium' ? '中危' : '低危';
+          const content = `<b style="color:${color}">${levelLabel} · ${evt.type}</b><br/>
+            路段: ${evt.roadName} ${evt.stakeNumber}<br/>
+            置信度: ${evt.confidence}% &nbsp; 来源: ${evt.source === 'camera' ? '📷' : '✈️'} ${evt.sourceDetail}<br/>
+            ${imgHtml}
+            <span style="color:${t.muted}">时间: ${timeStr}</span><br/>
+            <a href="/event/${evt.id}" style="color:${t.link};text-decoration:none;font-weight:500;"
+               onclick="event.preventDefault();window.history.pushState(null,'','/event/${evt.id}');window.dispatchEvent(new PopStateEvent('popstate'));">
+              查看详情 →
+            </a>`;
+          showInfo(AMap, [cell.lng, cell.lat], content);
+        } else {
+          // 聚合点：列出所有事件
+          const items = cell.events.slice(0, 5).map((e) => {
+            const ll = e.level === 'high' ? '🔴' : e.level === 'medium' ? '🟡' : '🔵';
+            const t = new Date(e.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            return `${ll} <a href="/event/${e.id}" style="color:${t.link};text-decoration:none;"
+              onclick="event.preventDefault();window.history.pushState(null,'','/event/${e.id}');window.dispatchEvent(new PopStateEvent('popstate'));">${e.type} @ ${e.stakeNumber} ${t}</a>`;
+          }).join('<br/>');
+          const more = count > 5 ? `<br/><span style="color:${t.muted}">... 还有 ${count - 5} 起事件</span>` : '';
+          const content = `<b style="color:${color}">📍 ${count} 起事件聚合</b><br/><br/>${items}${more}
+            <br/><span style="color:${t.muted};font-size:10px;">放大缩小地图可展开/合并标记</span>`;
+          showInfo(AMap, [cell.lng, cell.lat], content);
+        }
+      });
+
+      marker.setMap(amap);
+      markersRef.current.set(`grid_${cell.lng.toFixed(3)}_${cell.lat.toFixed(3)}`, marker);
+    });
+  }, [amap, events, theme, zoom]);
 
   const isSameCoords = (a: [number, number], b: [number, number]) =>
     a[0] === b[0] && a[1] === b[1];
@@ -409,17 +544,17 @@ export function AMapContainer() {
           <Spin description="地图加载中..." />
         </div>
       )}
-      {loaded && (
-        <FloatButton.Group shape="circle" style={{ position: 'absolute', right: 12, top: 60, zIndex: 100 }}>
-          <FloatButton icon={<ZoomInOutlined />} tooltip="放大" onClick={() => amap?.zoomIn()} />
-          <FloatButton icon={<ZoomOutOutlined />} tooltip="缩小" onClick={() => amap?.zoomOut()} />
-          <FloatButton icon={<AimOutlined />} tooltip="回到中心" onClick={() => amap?.setCenter(CENTER)} />
-          <FloatButton icon={<FullscreenOutlined />} tooltip="全屏"
-            onClick={() => document.getElementById('amap-container')?.requestFullscreen?.()} />
-        </FloatButton.Group>
-      )}
-      {loaded && <MapLegend />}
+      {loaded && <MapToolbar amap={amap} center={CENTER} showHeatmap={showHeatmap} onToggleHeatmap={toggleHeatmap} />}
       <DroneVideoWindow />
+      {/* 调试：点击地图显示坐标 */}
+      <div ref={coordPanelRef} style={{
+        position: 'absolute', bottom: 16, right: 60, zIndex: 200,
+        background: 'rgba(0,0,0,0.8)', color: '#58A6FF',
+        padding: '6px 12px', borderRadius: 6, fontFamily: 'monospace',
+        fontSize: 12, pointerEvents: 'none',
+      }}>
+        点击地图获取坐标
+      </div>
     </div>
   );
 }

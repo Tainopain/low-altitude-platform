@@ -29,7 +29,9 @@ router.post('/send', async (req, res) => {
   let response: string;
   try {
     response = await callLLM(text);
-  } catch {
+    console.log('   Chat: LLM response');
+  } catch (e: any) {
+    console.log(`   Chat: Mock fallback (LLM: ${e.message})`);
     response = generateMockResponse(text);
   }
 
@@ -80,25 +82,61 @@ async function callLLM(userText: string): Promise<string> {
 }
 
 function buildContext(events: any[], drones: any[]): string {
-  const highCount = events.filter((e) => e.level === 'high').length;
-  const pendingCount = events.filter((e) => e.status === 'pending').length;
-  const flyingCount = drones.filter((d) => d.status === 'flying').length;
-  return `试点路段G50 K0-K60，${drones.length}架无人机(${flyingCount}架在空)，4路摄像头在线，今日${events.length}条事件(高危${highCount}条，待处理${pendingCount}条)`;
+  const highCount = events.filter((e: any) => e.level === 'high').length;
+  const pendingCount = events.filter((e: any) => e.status === 'pending').length;
+  const standbyCount = drones.filter((d: any) => d.status === 'standby').length;
+  const locNames = [...new Set(events.map((e: any) => e.road_name).filter(Boolean))].slice(0, 5).join('、');
+  return `重庆主城9立交监控点(${locNames}等)，${drones.length}架无人机(${standbyCount}架待命)，9路摄像头在线，今日${events.length}条事件(高危${highCount}条，待处理${pendingCount}条)`;
 }
 
-// Mock fallback
-const MOCK_RESPONSES: Record<string, string> = {
-  '无人机状态': '当前 4 架无人机：\n- **DJI-001** 🟢 在空巡逻中，电量 78%\n- **DJI-002** 🟡 待命，电量 100%\n- **DJI-003** 🟡 待命，电量 95%\n- **DJI-004** ⚪ 充电中，电量 35%',
-  '高危事件': '当前高危事件：\n1. G50 K7+800 火焰检测 88%\n2. G50 K18+400 烟雾异常 91%\n3. G50 K12+300 交通事故 94%\n4. G50 K32+500 拥堵事件 87%\n5. G50 K5+200 交通事故 82%',
-  '路况': '试点路段 G50 当前状态：\n- 进城方向：基本畅通\n- 出城方向：K25 附近轻度拥堵\n- 全路段 4 路摄像头在线',
-  '统计': '今日事件统计：总计 12 条，高危 5 | 中危 4 | 低危 3，待处理 7 条。',
-};
-
+// Mock fallback — 动态生成，基于实时数据
 function generateMockResponse(text: string): string {
-  for (const [k, v] of Object.entries(MOCK_RESPONSES)) {
-    if (text.includes(k)) return v;
+  console.log('   Chat query:', text);
+  const events = store.getEvents();
+  const drones = store.getDrones();
+  console.log(`   Data: ${events.length} events, ${drones.length} drones`);
+  const highEvents = events.filter((e: any) => e.level === 'high');
+  const pendingEvents = events.filter((e: any) => e.status === 'pending');
+  const locNames = [...new Set(events.map((e: any) => e.road_name).filter(Boolean))];
+
+  if (text.includes('无人机') || text.includes('机舱')) {
+    const droneList = drones.map((d: any) =>
+      `- **${d.name}** ${d.status === 'standby' ? '🟡 待命' : d.status === 'flying' ? '🟢 在空' : '⚪ 离线'}，电量 ${d.battery}%，${d.task}`
+    ).join('\n');
+    return `当前 ${drones.length} 架无人机：\n${droneList}\n飞行覆盖半径 5km，9 路摄像头全部在线。`;
   }
-  return '试点路段 G50 运行正常。1 架无人机巡逻中，4 路摄像头在线，今日已检测事件若干。\n\n可查询："无人机状态""高危事件列表""当前路段路况""今日事件统计"';
-}
+
+  if (text.includes('高危') || text.includes('事件')) {
+    if (highEvents.length === 0) return '当前无高危事件，系统运行正常。';
+    const top5 = highEvents.slice(0, 5).map((e: any, i: number) =>
+      `${i + 1}. ${e.road_name} ${e.type} 置信度 ${e.confidence}% ${e.status === 'pending' ? '⏳待处理' : '✅已确认'}`
+    ).join('\n');
+    return `当前高危事件 ${highEvents.length} 起：\n${top5}\n${pendingEvents.length > 0 ? `共 ${pendingEvents.length} 起待处理，建议优先关注。` : '全部已确认处置。'}`;
+  }
+
+  if (text.includes('路况')) {
+    const locSummary = locNames.slice(0, 5).map((n: string) => {
+      const count = events.filter((e: any) => e.road_name === n).length;
+      return `${n}：${count} 起事件`;
+    }).join('\n');
+    return `重庆主城 9 立交监控点当前状态：\n${locSummary}\n总计 ${events.length} 起事件，9 路摄像头在线，4 架无人机待命。`;
+  }
+
+  if (text.includes('统计')) {
+    const high = events.filter((e: any) => e.level === 'high').length;
+    const med = events.filter((e: any) => e.level === 'medium').length;
+    const low = events.filter((e: any) => e.level === 'low').length;
+    const types: Record<string, number> = {};
+    events.forEach((e: any) => { types[e.type] = (types[e.type] || 0) + 1; });
+    const typeStr = Object.entries(types).map(([t, c]) => {
+      const names: Record<string, string> = { accident: '事故', congestion: '拥堵', obstacle: '障碍物', smoke: '烟雾', fire: '火焰' };
+      return `${names[t] || t} ${c} 起`;
+    }).join(' | ');
+    return `今日事件统计：\n- 总计 ${events.length} 起\n- 高危 ${high} | 中危 ${med} | 低危 ${low}\n- 待处理 ${pendingEvents.length} 起\n- 类型：${typeStr}`;
+  }
+
+  // 默认回复
+  return `重庆主城 9 立交监控点运行正常。${drones.length} 架无人机待命，9 路摄像头在线，当前 ${events.length} 起事件（高危 ${highEvents.length} 起）。\n\n可查询："无人机状态""高危事件""当前路况""事件统计"`;
+};
 
 export default router;

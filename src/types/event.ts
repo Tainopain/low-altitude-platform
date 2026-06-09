@@ -12,7 +12,8 @@ export interface HighwayEvent {
   stakeNumber: string;         // e.g. "K18+400"
   direction: string;           // e.g. "进城"
   coordinates: [number, number];
-  screenshot?: string;         // base64 or URL
+  screenshot?: string;         // AI 检测截图 URL
+  aiDescription?: string;      // AI 分析描述
   source: EventSource;
   sourceDetail: string;        // e.g. "摄像头 · 红外确认"
   status: EventStatus;

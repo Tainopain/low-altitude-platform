@@ -15,7 +15,7 @@ function genMsgId(): string { return `msg_${++msgCounter}`; }
 
 export const useChatStore = create<ChatStore>((set) => ({
   messages: [
-    { id: genMsgId(), role: 'assistant', content: '你好，我是低空AI助手。当前试点路段 G50 K0-K60，1架无人机巡逻中，4路摄像头在线，今日已检测 12 条事件。', timestamp: Date.now() },
+    { id: genMsgId(), role: 'assistant', content: '你好，我是低空AI助手。当前重庆主城9个立交监控点，4架无人机待命，9路摄像头在线。', timestamp: Date.now() },
   ],
   streaming: false,
 
@@ -58,11 +58,11 @@ export const useChatStore = create<ChatStore>((set) => ({
 
 function mockResponse(text: string): string {
   const map: Record<string, string> = {
-    '无人机状态': '当前 4 架无人机：\n- **DJI-001** 🟢 在空巡逻中，电量 78%\n- **DJI-002** 🟡 待命，电量 100%\n- **DJI-003** 🟡 待命，电量 95%\n- **DJI-004** ⚪ 充电中，电量 35%',
-    '高危事件': '当前高危事件 5 条：\n1. G50 K7+800 火焰检测 88%\n2. G50 K18+400 烟雾异常 91%\n3. G50 K12+300 交通事故 94%\n4. G50 K32+500 拥堵事件 87%\n5. G50 K5+200 交通事故 82%',
-    '路况': '试点路段 G50 当前状态：\n- 进城方向：基本畅通\n- 出城方向：K25 附近轻度拥堵\n- 全路段 4 路摄像头在线',
-    '统计': '今日事件统计：\n- 总计：12 条\n- 高危：5 | 中危：4 | 低危：3\n- 待处理：7 条',
+    '无人机状态': '当前 4 架无人机待命：\n- **北环机舱** 🟡 待命，覆盖北环/石马河/东环\n- **沙坪坝机舱** 🟡 待命，覆盖杨公桥/高滩岩\n- **华岩机舱** 🟡 待命，覆盖西环/凤中\n- **南岸机舱** 🟡 待命，覆盖四公里/江南\n飞行半径 5km',
+    '高危事件': '请查看大屏实时事件流获取最新高危事件。点击事件卡片可查看 AI 分析详情。',
+    '路况': '重庆主城 9 立交监控点当前状态：\n- 9 路摄像头全部在线\n- 4 架无人机待命（5km 覆盖半径）\n- AI 检测每 90s 轮询一次',
+    '统计': '请查看数据看板页面获取完整的统计分析，包括事件趋势、热力分布和 AI 洞察。',
   };
   for (const [k, v] of Object.entries(map)) { if (text.includes(k)) return v; }
-  return '试点路段 G50 运行正常。1 架无人机巡逻中，4 路摄像头在线，今日已检测 12 条事件。\n\n可查询："无人机状态？""高危事件列表""当前路段路况""今日事件统计"';
+  return '重庆主城 9 立交监控点运行正常。4 架无人机待命，9 路摄像头在线。\n\n可查询："无人机状态？""高危事件列表""当前路段路况""今日事件统计"';
 }

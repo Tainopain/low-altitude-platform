@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Descriptions, Timeline, Card, Typography, Space, Image, Tag } from 'antd';
+import { Button, Descriptions, Timeline, Card, Typography, Space, Image, Tag, Spin } from 'antd';
 import { ArrowLeftOutlined, SendOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useEventStore } from '../stores/eventStore';
 import { useDroneStore } from '../stores/droneStore';
@@ -13,12 +14,31 @@ export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const events = useEventStore((s) => s.events);
+  const loading = useEventStore((s) => s.loading);
+  const loadEvents = useEventStore((s) => s.loadEvents);
   const updateEvent = useEventStore((s) => s.updateEvent);
   const drones = useDroneStore((s) => s.drones);
+  const loadDrones = useDroneStore((s) => s.loadDrones);
   const setTask = useDroneStore((s) => s.setTask);
   const setStatus = useDroneStore((s) => s.setStatus);
   const showVideoWindow = useUIStore((s) => s.showVideoWindow);
   const t = useThemeColors();
+
+  // 直接访问事件详情页时，确保数据已加载
+  useEffect(() => {
+    if (events.length === 0) {
+      loadEvents();
+      loadDrones();
+    }
+  }, []);
+
+  if (loading || events.length === 0) {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Spin description="加载事件数据..." />
+      </div>
+    );
+  }
 
   const event = events.find((e) => e.id === id);
 
@@ -125,11 +145,12 @@ export default function EventDetailPage() {
           {/* AI 分析 */}
           <Card size="small" style={{ background: t.bg, marginBottom: 16 }}>
             <Typography.Text strong style={{ color: t.link }}>🤖 AI 分析</Typography.Text>
-            <Typography.Paragraph style={{ marginTop: 8, fontSize: 13, color: t.muted }}>
-              检测到 {EVENT_TYPE_LABELS[event.type]}事件，置信度 {event.confidence}%。
-              {event.level === 'high' ? '该事件风险等级较高，建议立即调度无人机抵近确认。' : ''}
-              {event.level === 'medium' ? '建议值班员确认后决定是否调度无人机。' : ''}
-              {event.level === 'low' ? '该事件风险较低，可常规处置。' : ''}
+            <Typography.Paragraph style={{ marginTop: 8, fontSize: 13, color: t.text, lineHeight: 1.8 }}>
+              {event.aiDescription || `检测到 ${EVENT_TYPE_LABELS[event.type]}事件，置信度 ${event.confidence}%。${
+                event.level === 'high' ? '该事件风险等级较高，建议立即调度无人机抵近确认。' :
+                event.level === 'medium' ? '建议值班员确认后决定是否调度无人机。' :
+                '该事件风险较低，可常规处置。'
+              }`}
             </Typography.Paragraph>
           </Card>
 

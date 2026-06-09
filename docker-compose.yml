@@ -4,16 +4,24 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "${PORT:-8080}:80"
     environment:
+      - NODE_ENV=production
+      - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-lowalt-mvp-secret}
       - LLM_API_URL=${LLM_API_URL:-}
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-deepseek-chat}
       - AI_INTERVAL=${AI_INTERVAL:-30000}
+      - PATROL_INTERVAL=${PATROL_INTERVAL:-3000}
     volumes:
       - server_data:/app/server/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   server_data:

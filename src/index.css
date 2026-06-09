@@ -21,3 +21,16 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; }
 .new-event-flash {
   animation: new-event-flash 1.5s ease-out;
 }
+
+/* 响应式：小屏 < 768px 时隐藏部分浮动元素 */
+@media (max-width: 768px) {
+  .ant-float-btn-group {
+    right: 4px !important;
+    top: 40px !important;
+    gap: 2px !important;
+  }
+  .ant-float-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}

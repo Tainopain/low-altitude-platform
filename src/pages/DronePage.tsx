@@ -43,10 +43,10 @@ export default function DronePage() {
       <Card title="📊 飞行日志" size="small">
         <Table
           dataSource={[
-            { key: '1', time: '2026-06-09 08:00', drone: 'DJI-001', mission: '日常巡逻', duration: '45min', result: '正常' },
-            { key: '2', time: '2026-06-09 09:30', drone: 'DJI-002', mission: '应急抵近 · K18+400 烟雾', duration: '8min', result: '已确认' },
-            { key: '3', time: '2026-06-08 14:00', drone: 'DJI-001', mission: '日常巡逻', duration: '42min', result: '正常' },
-            { key: '4', time: '2026-06-08 10:15', drone: 'DJI-003', mission: '应急抵近 · K12+300 事故', duration: '12min', result: '已处置' },
+            { key: '1', time: '2026-06-09 08:00', drone: '北环机舱', mission: '区域巡航 · 北环/石马河/东环', duration: '45min', result: '正常' },
+            { key: '2', time: '2026-06-09 09:30', drone: '沙坪坝机舱', mission: '应急抵近 · 杨公桥立交事故', duration: '8min', result: '已处置' },
+            { key: '3', time: '2026-06-08 14:00', drone: '北环机舱', mission: '区域巡航 · 北环/石马河/东环', duration: '42min', result: '正常' },
+            { key: '4', time: '2026-06-08 10:15', drone: '华岩机舱', mission: '应急抵近 · 西环立交拥堵', duration: '12min', result: '已处置' },
           ]}
           columns={[
             { title: '时间', dataIndex: 'time', width: 160 },

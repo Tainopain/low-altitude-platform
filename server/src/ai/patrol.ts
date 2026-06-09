@@ -27,7 +27,7 @@ export function startPatrolSimulator(intervalMs = 3000) {
   timer = setInterval(() => {
     const drones = store.getDrones();
     // Only move patrolling drones, skip dispatched ones
-    const patrolDrones = drones.filter((d) =>
+    const patrolDrones = drones.filter((d: any) =>
       d.status === 'flying' && (d.task.includes('巡逻') || d.task.includes('待命'))
     );
 
